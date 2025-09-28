@@ -4,37 +4,61 @@ import React from 'react'
 import { Input } from '../ui/input'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form'
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '../ui/form'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import Link from 'next/link'
 
-const formSchema = z.object({
-    email: z.email({
-        message: 'Email invalide.',
-    }),
-    password: z.string().min(8, {
-        message: 'Mot de passe trop court.',
-    }),
-    confirm_password: z.string().min(8, {
-        message: 'Mot de passe trop court.',
-    }),
-})
+const formSchema = z
+    .object({
+        email: z.email({
+            message: 'Email invalide.',
+        }),
+        password: z.string().min(8, {
+            message: 'Mot de passe trop court.',
+        }),
+        confirm_password: z.string().min(8, {
+            message: 'Mot de passe trop court.',
+        }),
+    })
+    .refine((data) => data.password === data.confirm_password, {
+        message: 'Les mots de passe ne correspondent pas.',
+        path: ['confirm_password'],
+    })
+
+type SignupValues = z.infer<typeof formSchema>
 
 const Signup = () => {
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<SignupValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             email: '',
             password: '',
             confirm_password: '',
         },
+        mode: 'onTouched',
     })
 
     return (
         <>
             <Form {...form}>
-                <form action={signup} className="space-y-8">
+                <form
+                    action={signup}
+                    onSubmit={async (e) => {
+                        const ok = await form.trigger()
+                        if (!ok) {
+                            e.preventDefault() // bloque l'envoi => FormMessage affiche les erreurs
+                        }
+                    }}
+                    className="space-y-8"
+                >
                     <FormField
                         control={form.control}
                         name="email"
@@ -49,6 +73,7 @@ const Signup = () => {
                                         required
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -66,6 +91,7 @@ const Signup = () => {
                                         required
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -83,6 +109,7 @@ const Signup = () => {
                                         required
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />

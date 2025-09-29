@@ -13,5 +13,14 @@ export default async function DashboardPage() {
         redirect('/login')
     }
 
-    return <Dashboard user={user} />
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+    if (profileError) {
+        console.error(profileError)
+    }
+
+    return <Dashboard user={user} profile={profile} />
 }

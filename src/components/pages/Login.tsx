@@ -15,9 +15,9 @@ const formSchema = z.object({
     }),
     password: z.string(),
 })
-
+type LoginValues = z.infer<typeof formSchema>
 const Login = () => {
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<LoginValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             email: '',

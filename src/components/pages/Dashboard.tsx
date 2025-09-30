@@ -19,32 +19,34 @@ export default function Dashboard({
     console.log('user', user)
     console.log('profile', profile)
     return (
-        <div className="relative">
-            <div>
-                <p>{user?.email}</p>
-                <p>{profile?.firstname}</p>
-                <p>{profile?.lastname}</p>
-                <p>{profile?.company_name}</p>
-                <p>{profile?.address}</p>
-                <p>{profile?.city}</p>
-                <p>{profile?.zipcode}</p>
-                <p>{profile?.capital}</p>
-                <p>{profile?.siret}</p>
+        <main className="flex flex-col items-center justify-center h-screen">
+            <div className="relative">
+                <div>
+                    <p>{user?.email}</p>
+                    <p>{profile?.firstname}</p>
+                    <p>{profile?.lastname}</p>
+                    <p>{profile?.company_name}</p>
+                    <p>{profile?.address}</p>
+                    <p>{profile?.city}</p>
+                    <p>{profile?.zipcode}</p>
+                    <p>{profile?.capital}</p>
+                    <p>{profile?.siret}</p>
+                </div>
+                {!isProfileCompleted && <Headband />}
+                <div>
+                    <form action="/auth/signout" method="post">
+                        <button className="button block" type="submit">
+                            Sign out
+                        </button>
+                    </form>
+                </div>
+                <Button onClick={() => router.push('/create-quote')}>
+                    Créer un devis
+                </Button>
+                {showPopup && !isProfileCompleted && (
+                    <Popup onClose={() => setShowPopup(false)} />
+                )}
             </div>
-            {!isProfileCompleted && <Headband />}
-            <div>
-                <form action="/auth/signout" method="post">
-                    <button className="button block" type="submit">
-                        Sign out
-                    </button>
-                </form>
-            </div>
-            <Button onClick={() => router.push('/create-quote')}>
-                Créer un devis
-            </Button>
-            {showPopup && !isProfileCompleted && (
-                <Popup onClose={() => setShowPopup(false)} />
-            )}
-        </div>
+        </main>
     )
 }

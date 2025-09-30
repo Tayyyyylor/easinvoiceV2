@@ -11,16 +11,13 @@ import { Button } from '../ui/button'
 
 interface PopupProps {
     onClose: () => void
-    className?: string
 }
 
-export const Popup = ({ onClose, className }: PopupProps) => {
+export const Popup = ({ onClose }: PopupProps) => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-1000 flex items-center justify-center ">
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <Card
-                className={`${className ?? ''} relative z-10 w-full max-w-sm`}
-            >
+            <Card className="relative z-10 w-full max-w-sm bg-white">
                 <CardHeader>
                     <CardTitle>Finaliser le profil</CardTitle>
                     <CardAction>

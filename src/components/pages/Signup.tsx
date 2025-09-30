@@ -47,7 +47,7 @@ const Signup = () => {
     })
 
     return (
-        <>
+        <main className="flex flex-col items-center justify-center h-screen">
             <Form {...form}>
                 <form
                     action={signup}
@@ -117,10 +117,10 @@ const Signup = () => {
                 </form>
             </Form>
             <p>
-                Vous avez déjà un compte ?{' '}
+                Vous avez déjà un compte ?
                 <Link href="/login">Se connecter</Link>
             </p>
-        </>
+        </main>
     )
 }
 

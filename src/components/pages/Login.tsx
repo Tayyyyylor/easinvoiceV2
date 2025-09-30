@@ -26,7 +26,7 @@ const Login = () => {
     })
 
     return (
-        <>
+        <main className="flex flex-col items-center justify-center h-screen">
             <Form {...form}>
                 <form action={login} className="space-y-8">
                     <FormField
@@ -70,7 +70,7 @@ const Login = () => {
                 Vous n&apos;avez pas de compte ?{' '}
                 <Link href="/signup">S&apos;inscrire</Link>
             </p>
-        </>
+        </main>
     )
 }
 

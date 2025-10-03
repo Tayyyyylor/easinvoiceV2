@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
-import { finalizeAccount } from '@/app/finalizeAccount/action'
+import { finalizeAccount } from '@/app/(app)/finalizeAccount/action'
+import { useAuth } from '@/contexts/useAuth'
 
 const formSchema = z.object({
     firstname: z.string(),
@@ -19,7 +20,8 @@ const formSchema = z.object({
     siret: z.string(),
 })
 
-const FormAccount = ({ userId }: { userId: string }) => {
+const FormAccount = () => {
+    const { user } = useAuth()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -38,7 +40,7 @@ const FormAccount = ({ userId }: { userId: string }) => {
         <>
             <Form {...form}>
                 <form action={finalizeAccount} className="space-y-8">
-                    <input type="hidden" name="id" value={userId} />
+                    <input type="hidden" name="id" value={user?.id} />
                     <FormField
                         control={form.control}
                         name="firstname"

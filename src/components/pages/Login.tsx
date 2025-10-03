@@ -1,5 +1,5 @@
 'use client'
-import { login } from '@/app/login/actions'
+import { login } from '@/app/(auth)/login/actions'
 import React from 'react'
 import { Input } from '../ui/input'
 import { z } from 'zod'
@@ -67,7 +67,7 @@ const Login = () => {
                 </form>
             </Form>
             <p>
-                Vous n&apos;avez pas de compte ?{' '}
+                Vous n&apos;avez pas de compte ?
                 <Link href="/signup">S&apos;inscrire</Link>
             </p>
         </main>

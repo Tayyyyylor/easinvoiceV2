@@ -1,5 +1,5 @@
 'use client'
-import { signup } from '@/app/login/actions'
+import { signup } from '@/app/(auth)/login/actions'
 import React from 'react'
 import { Input } from '../ui/input'
 import { z } from 'zod'

@@ -1,23 +1,17 @@
 'use client'
-import { type User } from '@supabase/supabase-js'
 import { Popup } from '../endAccount/Popup'
 import { useState } from 'react'
 import { Headband } from '../endAccount/Headband'
 import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/useAuth'
 
-export default function Dashboard({
-    user,
-    profile,
-}: {
-    user: User | null
-    profile: Profile | null
-}) {
+export default function Dashboard() {
     const [showPopup, setShowPopup] = useState(true)
+    const { user, profile } = useAuth()
     const router = useRouter()
     const isProfileCompleted = profile?.firstname && profile?.lastname
-    console.log('user', user)
-    console.log('profile', profile)
+
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             <div className="relative">
@@ -40,8 +34,11 @@ export default function Dashboard({
                         </button>
                     </form>
                 </div>
-                <Button onClick={() => router.push('/create-quote')}>
+                <Button onClick={() => router.push('/quotes')}>
                     Créer un devis
+                </Button>
+                <Button onClick={() => router.push('/clients')}>
+                    Créer un client
                 </Button>
                 {showPopup && !isProfileCompleted && (
                     <Popup onClose={() => setShowPopup(false)} />

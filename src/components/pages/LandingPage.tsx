@@ -1,12 +1,10 @@
 import React from 'react'
 import { Button } from '../ui/button'
 import Link from 'next/link'
-import { Header } from '../layouts/header/Header'
 
 export const LandingPage = () => {
     return (
         <>
-            <Header isLoggedIn={false} />
             <main className="flex flex-col items-center justify-center h-screen">
                 <Button asChild>
                     <Link href="/signup">Signup</Link>

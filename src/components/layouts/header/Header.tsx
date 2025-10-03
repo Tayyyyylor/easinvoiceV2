@@ -21,9 +21,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 </div>
             ) : (
                 <div className="flex items-center gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href="/dashboard">Dashboard</Link>
+                    </Button>
                     <form action="/auth/signout" method="post">
-                        <Button variant="outline" asChild>
-                            <Link href="/auth/signout">Logout</Link>
+                        <Button variant="outline" type="submit">
+                            Logout
                         </Button>
                     </form>
                 </div>

@@ -1,5 +1,5 @@
-import { CreateQuote } from '@/components/pages/CreateQuote'
+import { Quotes } from '@/components/pages/Quotes'
 
-export default async function CreateQuotePage() {
-    return <CreateQuote />
+export default async function QuotesPage() {
+    return <Quotes />
 }

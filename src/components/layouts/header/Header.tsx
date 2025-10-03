@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     return (
-        <header className="p-1 flex items-center fixed top-0 left-0 w-full z-1000 justify-between bg-white">
+        <header className="p-1 flex items-center sticky top-0 left-0 w-full z-1000 justify-between bg-white border-b">
             <h1>EasInvoice</h1>
             <div className="flex items-center gap-2">
                 <Navbar />

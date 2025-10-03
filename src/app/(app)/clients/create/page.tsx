@@ -1,5 +1,5 @@
-import { FormClients } from '@/components/clients/FormClients'
+import { CreateClient } from '@/components/pages/CreateClient'
 
 export default async function ClientsPage() {
-    return <FormClients />
+    return <CreateClient />
 }

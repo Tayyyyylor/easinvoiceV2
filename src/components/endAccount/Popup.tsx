@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import {
     Card,
@@ -8,12 +9,17 @@ import {
     CardTitle,
 } from '../ui/card'
 import { Button } from '../ui/button'
+import { useRouter } from 'next/navigation'
 
 interface PopupProps {
     onClose: () => void
 }
 
 export const Popup = ({ onClose }: PopupProps) => {
+    const router = useRouter()
+    const handleClickFinalize = () => {
+        router.push('/finalizeAccount')
+    }
     return (
         <div className="fixed inset-0 z-1000 flex items-center justify-center ">
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -34,7 +40,7 @@ export const Popup = ({ onClose }: PopupProps) => {
                     <Button type="button" onClick={onClose}>
                         Plus tard
                     </Button>
-                    <Button variant="outline" type="button">
+                    <Button variant="outline" type="button" onClick={handleClickFinalize}>
                         Finaliser le profil
                     </Button>
                 </CardFooter>

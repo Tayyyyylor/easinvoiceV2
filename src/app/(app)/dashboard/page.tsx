@@ -4,7 +4,9 @@ import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
     const { data: clients, error } = await supabase
@@ -13,9 +15,9 @@ export default async function DashboardPage() {
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false })
 
-        if (error) {
-            console.error('fetch clients error', error)
-          }
+    if (error) {
+        console.error('fetch clients error', error)
+    }
 
     return <Dashboard clients={clients ?? []} />
 }

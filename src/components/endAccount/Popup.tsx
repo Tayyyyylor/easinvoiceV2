@@ -40,7 +40,11 @@ export const Popup = ({ onClose }: PopupProps) => {
                     <Button type="button" onClick={onClose}>
                         Plus tard
                     </Button>
-                    <Button variant="outline" type="button" onClick={handleClickFinalize}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={handleClickFinalize}
+                    >
                         Finaliser le profil
                     </Button>
                 </CardFooter>

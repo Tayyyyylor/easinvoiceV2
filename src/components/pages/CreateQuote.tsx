@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import React from 'react'
-import { useForm } from 'react-hook-form'
+import React, { useRef } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form'
-import { Input } from '../ui/input'
+import { Form } from '../ui/form'
 import { Button } from '../ui/button'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createQuote } from '@/app/(app)/quotes/action'
@@ -13,73 +13,49 @@ import {
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from '@radix-ui/react-select'
+import { Formfield } from '../atoms/Formfield'
 
 const quoteLineSchema = z.object({
-    label: z.string().min(1),
-    unit: z.string().default('u').optional(),
+    description: z.string().min(1),
     quantity: z.number().positive().optional(),
     unit_price: z.number().nonnegative().optional(), // en € côté form
+    total_price: z.number().nonnegative().optional(),
+    type: z.string().min(1),
+    tax_rate: z.number().nonnegative().optional(),
 })
 
 const createQuoteSchema = z.object({
-    client_name: z.string().min(1),
-    buyer: z.object({
-        client_address: z.string().min(1),
-        client_city: z.string().min(1),
-        client_zipcode: z.string().min(1),
-        client_capital: z.string().min(1).optional(),
-        client_siret: z.string().min(1).optional(),
-    }),
+    description: z.string().min(1),
+    currency: z.string().min(1),
+    validity_period: z.number().nonnegative().optional(),
+    terms: z.string().min(1).optional(),
     lines: z.array(quoteLineSchema).min(1),
-    notes: z.string().optional(),
-    terms: z.string().optional(),
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
-export const CreateQuote = () => {
+export const CreateQuote = ({ clients }: { clients: any[] }) => {
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
         defaultValues: {
-            client_name: '',
-            buyer: {
-                client_address: '',
-                client_city: '',
-                client_zipcode: '',
-                client_capital: '',
-                client_siret: '',
-            },
-            lines: [],
-            notes: '',
             terms: '',
+            lines: [],
+            currency: 'EUR',
+            validity_period: 1,
+            description: '',
         },
     })
 
-    // const personalData = [
-    //     { label: 'Prénom', value: profile?.firstname },
-    //     { label: 'Nom', value: profile?.lastname },
-    //     { label: "Nom de l'entreprise", value: profile?.company_name },
-    //     { label: 'Adresse', value: profile?.address },
-    //     { label: 'Ville', value: profile?.city },
-    //     { label: 'Code postal', value: profile?.zipcode },
-    //     { label: 'Capital social', value: profile?.capital },
-    //     { label: 'Siret/Siren', value: profile?.siret },
-    // ]
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: 'lines',
+    })
+
     return (
         <main className="mt-10">
             <h1>Créer un devis</h1>
-            {/* <div>
-                <h2>Vos infos</h2>
-                {personalData.map((item, index) => (
-                    <div className="flex gap-2" key={index}>
-                        <label htmlFor="">{item.label}</label>
-                        <p>{item.value}</p>
-                    </div>
-                ))}
-            </div> */}
             <div className="mb-[400px]">
                 <Select>
                     <SelectTrigger className="w-[180px]">
@@ -90,16 +66,12 @@ export const CreateQuote = () => {
                             <SelectItem value="new-client">
                                 Nouveau client
                             </SelectItem>
-                            <SelectItem value="banana">Banana</SelectItem>
-                            <SelectItem value="blueberry">Blueberry</SelectItem>
-                            <SelectItem value="grapes">Grapes</SelectItem>
-                            <SelectItem value="pineapple">Pineapple</SelectItem>
-                        </SelectGroup>
-                        <SelectGroup>
-                            <SelectLabel>Clients</SelectLabel>
-                            {/* {profile.clients.map((client) => (
-            <SelectItem value={client.id} key={client.id}>{client.name}</SelectItem>
-            ))} */}
+                            {clients.map((client) => (
+                                <SelectItem value={client.id} key={client.id}>
+                                    {client.firstname ||
+                                        client.company_name}{' '}
+                                </SelectItem>
+                            ))}
                         </SelectGroup>
                     </SelectContent>
                 </Select>
@@ -108,111 +80,107 @@ export const CreateQuote = () => {
 
             <Form {...form}>
                 <form className="space-y-8" action={createQuote}>
-                    <div>
-                        <h2>Informations du client (obligatoire)</h2>
-                        <FormField
-                            control={form.control}
-                            name="client_name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nom du client</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Nom du client"
-                                            {...field}
-                                            type="text"
-                                            required
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
+                    <Formfield
+                        form={form}
+                        name="description"
+                        label="Objet du devis"
+                        placeholder="Ex: Site vitrine"
+                    />
+                    <div className="grid grid-cols-3 gap-4">
+                        <Formfield
+                            form={form}
+                            name="currency"
+                            label="Devise"
+                            placeholder="EUR"
+                        />
+                        <Formfield
+                            form={form}
+                            name="validity_period"
+                            label="Validité (jours)"
+                            placeholder="30"
+                        />
+                        <Formfield
+                            form={form}
+                            name="terms"
+                            label="Notes"
+                            placeholder="Notes (optionnel)"
                         />
                     </div>
-                    <FormField
-                        control={form.control}
-                        name="buyer.client_address"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Adresse du client</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Adresse du client"
-                                        {...field}
-                                        type="text"
-                                        required
+                    <div className="space-y-3">
+                        <div className="text-sm font-medium">Lignes</div>
+                        {fields.map((f, i) => (
+                            <div
+                                key={f.id}
+                                className="grid grid-cols-12 gap-2 items-end border rounded p-3"
+                            >
+                                <div className="col-span-4">
+                                    <Formfield
+                                        form={form}
+                                        name={`lines.${i}.description`}
+                                        label="Description"
+                                        placeholder="Ex: Intégration"
                                     />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="buyer.client_city"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Ville du client</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Ville du client"
-                                        {...field}
-                                        type="text"
-                                        required
+                                </div>
+                                <div className="col-span-2">
+                                    <Formfield
+                                        form={form}
+                                        name={`lines.${i}.type`}
+                                        label="Type"
+                                        placeholder="service/produit"
                                     />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="buyer.client_zipcode"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Code postal du client</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Code postal du client"
-                                        {...field}
-                                        type="text"
-                                        required
+                                </div>
+                                <div className="col-span-2">
+                                    <Formfield
+                                        form={form}
+                                        name={`lines.${i}.quantity`}
+                                        label="Qté"
+                                        placeholder="1"
                                     />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="buyer.client_capital"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Capital social du client</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Capital social du client"
-                                        {...field}
-                                        type="text"
-                                        required
+                                </div>
+                                <div className="col-span-2">
+                                    <Formfield
+                                        form={form}
+                                        name={`lines.${i}.unit_price`}
+                                        label="PU (€)"
+                                        placeholder="0"
                                     />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="buyer.client_siret"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Siret du client</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Siret du client"
-                                        {...field}
-                                        type="text"
-                                        required
+                                </div>
+                                <div className="col-span-1">
+                                    <Formfield
+                                        form={form}
+                                        name={`lines.${i}.tax_rate`}
+                                        label="TVA %"
+                                        placeholder="20"
                                     />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                                </div>
+                                <div className="col-span-1">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => remove(i)}
+                                    >
+                                        −
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() =>
+                                append({
+                                    description: '',
+                                    type: 'service',
+                                    quantity: 1,
+                                    unit_price: 0,
+                                    tax_rate: 20,
+                                })
+                            }
+                        >
+                            + Ajouter une ligne
+                        </Button>
+                    </div>
+
                     <Button type="submit">Créer le devis</Button>
                 </form>
             </Form>

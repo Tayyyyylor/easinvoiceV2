@@ -1,27 +1,27 @@
 'use client'
 import React from 'react'
-import { Input } from '../ui/input'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form'
+import { Form } from '../ui/form'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import { finalizeAccount } from '@/app/(app)/finalizeAccount/action'
-import { useAuth } from '@/contexts/useAuth'
+import { Formfield } from '../atoms/Formfield'
 
 const formSchema = z.object({
     firstname: z.string(),
     lastname: z.string(),
     company_name: z.string(),
     address: z.string(),
+    additional_address: z.string().optional(),
     city: z.string(),
     zipcode: z.string(),
-    capital: z.string(),
+    country: z.string(),
+    capital: z.number().optional(),
     siret: z.string(),
 })
 
 const FormAccount = () => {
-    const { user } = useAuth()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -29,9 +29,11 @@ const FormAccount = () => {
             lastname: '',
             company_name: '',
             address: '',
+            additional_address: '',
             city: '',
             zipcode: '',
-            capital: '',
+            country: '',
+            capital: 0,
             siret: '',
         },
     })
@@ -40,142 +42,66 @@ const FormAccount = () => {
         <>
             <Form {...form}>
                 <form action={finalizeAccount} className="space-y-8">
-                    <input type="hidden" name="id" value={user?.id} />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
                         name="firstname"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Prénom</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Prénom"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Prénom"
+                        placeholder="Prénom"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
                         name="lastname"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Nom</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Nom"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Nom"
+                        placeholder="Nom"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
                         name="company_name"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Nom de la société</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Nom de la société"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Nom de la société"
+                        placeholder="Nom de la société"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
                         name="address"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Adresse</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Adresse"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Adresse"
+                        placeholder="Adresse"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
+                        name="additional_address"
+                        label="Complément d'adresse"
+                        placeholder="Complément d'adresse"
+                    />
+                    <Formfield
+                        form={form}
                         name="city"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Ville</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Ville"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Ville"
+                        placeholder="Ville"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
                         name="zipcode"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Code postal</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Code postal"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Code postal"
+                        placeholder="Code postal"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
+                        name="country"
+                        label="Pays"
+                        placeholder="Pays"
+                    />
+                    <Formfield
+                        form={form}
                         name="capital"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Capital social</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Capital social"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="Capital social"
+                        placeholder="Capital social"
+                        type="number"
                     />
-                    <FormField
-                        control={form.control}
+                    <Formfield
+                        form={form}
                         name="siret"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>SIRET</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="SIRET"
-                                        {...field}
-                                        type="text"
-                                        required
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        label="SIRET"
+                        placeholder="SIRET"
                     />
                     <Button type="submit">Confirmer</Button>
                 </form>

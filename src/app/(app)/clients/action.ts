@@ -23,7 +23,7 @@ export async function createAClient(formData: FormData) {
     // in practice, you should validate your inputs
     const payload = {
         owner_id: user.id,
-        type: formData.get('type') as string,
+        type: formData.get('type') as 'company' | 'individual',
         email: formData.get('email') as string,
         firstname: formData.get('firstname') as string,
         lastname: formData.get('lastname') as string,
@@ -51,5 +51,5 @@ export async function createAClient(formData: FormData) {
     }
 
     revalidatePath('/clients')
-    redirect('/dashboard')
+    redirect('/clients')
 }

@@ -3,17 +3,21 @@ import React from 'react'
 import { FormControl, FormField, FormItem, FormLabel } from '../ui/form'
 import { Input } from '../ui/input'
 
+type FormfieldProps = {
+    form: any
+    name: string
+    label: string
+    placeholder: string
+    type?: string
+}
+
 export const Formfield = ({
     form,
     name,
     label,
     placeholder,
-}: {
-    form: any
-    name: string
-    label: string
-    placeholder: string
-}) => {
+    type = 'text',
+}: FormfieldProps) => {
     return (
         <FormField
             control={form.control}
@@ -25,7 +29,7 @@ export const Formfield = ({
                         <Input
                             placeholder={placeholder}
                             {...field}
-                            type="text"
+                            type={type}
                         />
                     </FormControl>
                 </FormItem>

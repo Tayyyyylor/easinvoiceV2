@@ -20,13 +20,7 @@ export default async function QuoteDetailPage({
 
     const { data: quote, error } = await supabase
         .from('quotes')
-        .select(
-            `
-      id, status, number, currency, created_at, updated_at, issue_date, expiry_date,
-      buyer_name, buyer, buyer_email, buyer_tax_id, buyer_address,
-      subtotal_cents, tax_cents, total_cents, seller, pdf_path
-    `
-        )
+        .select('id')
         .eq('id', quoteId)
         .single()
 

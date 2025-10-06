@@ -15,9 +15,19 @@ export default async function DashboardPage() {
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false })
 
+    const { data: quotes, error: quotesError } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+
     if (error) {
         console.error('fetch clients error', error)
     }
 
-    return <Dashboard clients={clients ?? []} />
+    if (quotesError) {
+        console.error('fetch quotes error', quotesError)
+    }
+
+    return <Dashboard clients={clients ?? []} quotes={quotes ?? []} />
 }

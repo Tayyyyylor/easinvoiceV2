@@ -114,6 +114,7 @@ export async function createQuote(formData: FormData) {
         .insert({
             owner_id: user.id,
             client_id,
+            name: formData.get('name') as string,
             validity_days: validityDays,
             status: 'draft',
             description,

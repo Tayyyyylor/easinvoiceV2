@@ -20,11 +20,15 @@ export default async function QuoteDetailPage({
 
     const { data: quote, error } = await supabase
         .from('quotes')
-        .select('id')
+        .select(
+            `
+            *
+        `
+        )
         .eq('id', quoteId)
         .single()
 
     if (error || !quote) redirect('/quotes')
 
-    return <QuoteDetails quote={quote} />
+    return <QuoteDetails quote={quote} items={quote.quote_items ?? []} />
 }

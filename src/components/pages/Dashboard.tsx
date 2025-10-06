@@ -10,9 +10,10 @@ import { CardInfos } from '../atoms/CardInfos'
 
 interface DashboardProps {
     clients: any[]
+    quotes: any[]
 }
 
-export default function Dashboard({ clients }: DashboardProps) {
+export default function Dashboard({ clients, quotes }: DashboardProps) {
     const [showPopup, setShowPopup] = useState(true)
     const { user, profile } = useAuth()
     const router = useRouter()
@@ -50,7 +51,15 @@ export default function Dashboard({ clients }: DashboardProps) {
 
                 <CardInfos
                     title="Mes devis"
-                    content=""
+                    content={
+                        <div>
+                            {quotes.map((quote) => (
+                                <div key={quote.id}>
+                                    <p>{quote.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    }
                     action={
                         <Button
                             onClick={

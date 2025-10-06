@@ -34,6 +34,7 @@ const createQuoteSchema = z.object({
     terms: z.string().min(1).optional(),
     lines: z.array(quoteLineSchema).min(1),
     client_id: z.number().positive().optional(),
+    name: z.string().min(1),
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
@@ -45,6 +46,7 @@ export const FormQuotes = ({ clients }: { clients: any[] }) => {
             lines: [],
             currency: 'EUR',
             validity_days: 1,
+            name: '',
             description: '',
             client_id: undefined,
         },
@@ -122,6 +124,12 @@ export const FormQuotes = ({ clients }: { clients: any[] }) => {
                             value={(form.watch('client_id') ?? '').toString()}
                         />
                     </div>
+                    <Formfield
+                        form={form}
+                        name="name"
+                        label="Nom du devis"
+                        placeholder="Ex: Devis 1"
+                    />
                     <Formfield
                         form={form}
                         name="description"

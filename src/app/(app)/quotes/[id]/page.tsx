@@ -22,13 +22,35 @@ export default async function QuoteDetailPage({
         .from('quotes')
         .select(
             `
-            *
+            *,
+            quote_items (*)
         `
         )
         .eq('id', quoteId)
+        .eq('owner_id', user.id)
         .single()
 
-    if (error || !quote) redirect('/quotes')
+    const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', quote.client_id)
+        .eq('owner_id', user.id)
+        .single()
 
-    return <QuoteDetails quote={quote} items={quote.quote_items ?? []} />
+    if (error || !quote || clientError || !client) redirect('/quotes')
+
+    // Récupération explicite des items (au cas où l'embed est vide selon RLS/FK)
+    const { data: items } = await supabase
+        .from('quote_items')
+        .select('*')
+        .eq('quote_id', quoteId)
+        .order('id', { ascending: true })
+
+    return (
+        <QuoteDetails
+            quote={quote}
+            items={items ?? quote.quote_items ?? []}
+            client={client ?? null}
+        />
+    )
 }

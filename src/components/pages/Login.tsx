@@ -1,5 +1,5 @@
 'use client'
-import { login } from '@/app/login/actions'
+import { login } from '@/app/(auth)/login/actions'
 import React from 'react'
 import { Input } from '../ui/input'
 import { z } from 'zod'
@@ -15,9 +15,9 @@ const formSchema = z.object({
     }),
     password: z.string(),
 })
-
+type LoginValues = z.infer<typeof formSchema>
 const Login = () => {
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<LoginValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             email: '',
@@ -26,7 +26,7 @@ const Login = () => {
     })
 
     return (
-        <>
+        <main className="flex flex-col items-center justify-center h-screen">
             <Form {...form}>
                 <form action={login} className="space-y-8">
                     <FormField
@@ -67,10 +67,10 @@ const Login = () => {
                 </form>
             </Form>
             <p>
-                Vous n&apos;avez pas de compte ?{' '}
+                Vous n&apos;avez pas de compte ?
                 <Link href="/signup">S&apos;inscrire</Link>
             </p>
-        </>
+        </main>
     )
 }
 

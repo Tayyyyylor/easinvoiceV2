@@ -1,3 +1,5 @@
+import { Error } from '@/components/pages/Error'
+
 export default function ErrorPage() {
-    return <p>Sorry, something went wrong</p>
+    return <Error />
 }

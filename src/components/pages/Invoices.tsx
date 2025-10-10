@@ -1,4 +1,4 @@
-"use client"
+'use client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRouter } from 'next/navigation'
 import React from 'react'
@@ -7,13 +7,13 @@ import { Button } from '../ui/button'
 export const Invoices = ({ invoices }: { invoices: any[] }) => {
     const router = useRouter()
     return (
-     <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center">
             <h1 className="text-2xl font-bold">Facture</h1>
             <div className="flex flex-col items-center justify-center">
                 {invoices.map((invoice) => (
                     <div
                         key={invoice.id}
-                        onClick={() => router.push(`/quotes/${invoice.id}`)}
+                        onClick={() => router.push(`/invoices/${invoice.id}`)}
                         className="pointer"
                     >
                         <h2 className="text-lg font-bold">{invoice.name}</h2>

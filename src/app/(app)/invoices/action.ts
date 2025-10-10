@@ -23,8 +23,6 @@ export async function createInvoice(formData: FormData) {
         }
     }
 
-    const validityDays =
-        toNumber(formData.get('validity_days') || payload?.validity_days) ?? 30
     const description =
         ((formData.get('description') || payload?.description) as string) ??
         null
@@ -122,6 +120,7 @@ export async function createInvoice(formData: FormData) {
             subtotal_cents,
             tax_cents,
             total_cents,
+            id_counter: '1',
         })
         .select('id')
         .single()

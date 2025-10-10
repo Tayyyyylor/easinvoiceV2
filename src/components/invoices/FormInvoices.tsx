@@ -1,14 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+'use client'
 import React from 'react'
-import { Form } from '../ui/form';
-import { z } from 'zod';
-import { useFieldArray, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Formfield } from '../atoms/Formfield';
-import { Button } from '../ui/button';
-import { createInvoice } from '@/app/(app)/invoices/action';
+import { Form } from '../ui/form'
+import { z } from 'zod'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '../ui/select'
+import { Formfield } from '../atoms/Formfield'
+import { Button } from '../ui/button'
+import { createInvoice } from '@/app/(app)/invoices/action'
 
 const invoiceLineSchema = z.object({
     description: z.string().min(1),
@@ -25,32 +32,32 @@ const createInvoiceSchema = z.object({
     terms: z.string().min(1).optional(),
     lines: z.array(invoiceLineSchema).min(1),
     client_id: z.number().positive().optional(),
-    name: z.string().min(1)
+    name: z.string().min(1),
 })
 
 type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
 
 export const FormInvoices = ({ clients }: { clients: any[] }) => {
-    console.log('clients :>> ', clients);
+    console.log('clients :>> ', clients)
 
     const form = useForm<CreateInvoiceValues>({
-            resolver: zodResolver(createInvoiceSchema),
-            defaultValues: {
-                terms: '',
-                lines: [],
-                currency: 'EUR',
-                name: '',
-                description: '',
-                client_id: undefined,
-            },
-        })
-    
-        const { fields, append, remove } = useFieldArray({
-            control: form.control,
-            name: 'lines',
-        })
-  return (
-      <main className="mt-10">
+        resolver: zodResolver(createInvoiceSchema),
+        defaultValues: {
+            terms: '',
+            lines: [],
+            currency: 'EUR',
+            name: '',
+            description: '',
+            client_id: undefined,
+        },
+    })
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: 'lines',
+    })
+    return (
+        <main className="mt-10">
             <h1>Créer une facture</h1>
 
             <Form {...form}>
@@ -221,5 +228,5 @@ export const FormInvoices = ({ clients }: { clients: any[] }) => {
                 </form>
             </Form>
         </main>
-  )
+    )
 }

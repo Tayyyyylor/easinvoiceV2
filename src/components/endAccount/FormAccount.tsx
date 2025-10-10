@@ -38,71 +38,74 @@ const FormAccount = () => {
         },
     })
 
+    const formFields = [
+        {
+            name: 'firstname',
+            label: 'Prénom',
+            placeholder: 'Prénom',
+        },
+        {
+            name: 'lastname',
+            label: 'Nom',
+            placeholder: 'Nom',
+        },
+
+        {
+            name: 'company_name',
+            label: 'Nom de la société',
+            placeholder: 'Nom de la société',
+        },
+
+        {
+            name: 'address',
+            label: 'Adresse',
+            placeholder: 'Adresse',
+        },
+
+        {
+            name: 'additional_address',
+            label: "Complément d'adresse",
+            placeholder: "Complément d'adresse",
+        },
+
+        {
+            name: 'city',
+            label: 'Ville',
+            placeholder: 'Ville',
+        },
+
+        {
+            name: 'zipcode',
+            label: 'Code postal',
+            placeholder: 'Code postal',
+        },
+
+        {
+            name: 'country',
+            label: 'Pays',
+            placeholder: 'Pays',
+        },
+
+        {
+            name: 'capital',
+            label: 'Capital social',
+            placeholder: 'Capital social',
+            type: 'number',
+        },
+        {
+            name: 'siret',
+            label: 'SIRET',
+            placeholder: 'SIRET',
+        },
+    ]
+
     return (
         <>
             <Form {...form}>
                 <form action={finalizeAccount} className="space-y-8">
-                    <Formfield
-                        form={form}
-                        name="firstname"
-                        label="Prénom"
-                        placeholder="Prénom"
-                    />
-                    <Formfield
-                        form={form}
-                        name="lastname"
-                        label="Nom"
-                        placeholder="Nom"
-                    />
-                    <Formfield
-                        form={form}
-                        name="company_name"
-                        label="Nom de la société"
-                        placeholder="Nom de la société"
-                    />
-                    <Formfield
-                        form={form}
-                        name="address"
-                        label="Adresse"
-                        placeholder="Adresse"
-                    />
-                    <Formfield
-                        form={form}
-                        name="additional_address"
-                        label="Complément d'adresse"
-                        placeholder="Complément d'adresse"
-                    />
-                    <Formfield
-                        form={form}
-                        name="city"
-                        label="Ville"
-                        placeholder="Ville"
-                    />
-                    <Formfield
-                        form={form}
-                        name="zipcode"
-                        label="Code postal"
-                        placeholder="Code postal"
-                    />
-                    <Formfield
-                        form={form}
-                        name="country"
-                        label="Pays"
-                        placeholder="Pays"
-                    />
-                    <Formfield
-                        form={form}
-                        name="capital"
-                        label="Capital social"
-                        placeholder="Capital social"
-                        type="number"
-                    />
-                    <Formfield
-                        form={form}
-                        name="siret"
-                        label="SIRET"
-                        placeholder="SIRET"
-                    />
+                    {formFields.map((field) => (
+                        <Formfield key={field.name} form={form} {...field} />
+                    ))}
                     <Button type="submit">Confirmer</Button>
                 </form>
             </Form>

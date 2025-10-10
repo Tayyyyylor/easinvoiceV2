@@ -58,7 +58,6 @@ export const Desc = ({ items, showTax }: { items: any; showTax: any }) => {
                 </View>
                 {/* Table rows */}
                 {items.map((it: any, i: any) => {
-                    console.log('test it', it)
                     return (
                         <View key={i} style={styles.tableRow}>
                             <Text style={styles.cellType}>{it.type}</Text>

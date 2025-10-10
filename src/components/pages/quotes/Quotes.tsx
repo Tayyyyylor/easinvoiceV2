@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React from 'react'
-import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 export const Quotes = ({ quotes }: { quotes: any[] }) => {
     const router = useRouter()

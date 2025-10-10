@@ -38,8 +38,6 @@ const createInvoiceSchema = z.object({
 type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
 
 export const FormInvoices = ({ clients }: { clients: any[] }) => {
-    console.log('clients :>> ', clients)
-
     const form = useForm<CreateInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {

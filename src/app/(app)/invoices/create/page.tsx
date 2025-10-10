@@ -1,13 +1,8 @@
-import { CreateInvoice } from '@/components/pages/CreateInvoice'
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
+import { CreateInvoice } from '@/components/pages/invoices/CreateInvoice'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 
 export default async function CreateInvoicePage() {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const { user, supabase } = await getAuthenticatedUser()
 
     const { data: clients, error } = await supabase
         .from('clients')

@@ -7,7 +7,7 @@ const PDFViewer = dynamic(
     { ssr: false }
 )
 import { useAuth } from '@/contexts/useAuth'
-import { InvoicePdf } from '../pdf/InvoicePdf'
+import { InvoicePdf } from '@/components/pdf/InvoicePdf'
 
 export const InvoiceDetails = ({
     invoice,
@@ -32,7 +32,6 @@ export const InvoiceDetails = ({
         a.click()
         URL.revokeObjectURL(url)
     }
-    console.log(invoice)
 
     return (
         <div className="p-6 space-y-4">

@@ -15,8 +15,7 @@ export const Headband = () => {
                 variant="outline"
                 onClick={() => router.push('/finalizeAccount')}
             >
-                {' '}
-                Finir le profil{' '}
+                Finir le profil
             </Button>
         </div>
     )

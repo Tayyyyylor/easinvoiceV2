@@ -32,7 +32,6 @@ export const QuoteDetails = ({
         a.click()
         URL.revokeObjectURL(url)
     }
-    console.log(quote)
 
     return (
         <div className="p-6 space-y-4">

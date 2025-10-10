@@ -1,8 +1,8 @@
 'use client'
+import { Button } from '@/components/ui/button'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRouter } from 'next/navigation'
 import React from 'react'
-import { Button } from '../ui/button'
 
 export const Invoices = ({ invoices }: { invoices: any[] }) => {
     const router = useRouter()

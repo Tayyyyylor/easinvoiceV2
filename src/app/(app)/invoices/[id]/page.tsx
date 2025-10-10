@@ -1,5 +1,5 @@
-import { InvoiceDetails } from '@/components/pages/InvoiceDetails'
-import { createClient } from '@/utils/supabase/server'
+import { InvoiceDetails } from '@/components/pages/invoices/InvoiceDetails'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 import { redirect } from 'next/navigation'
 
 export default async function InvoiceDetailPage({
@@ -7,14 +7,7 @@ export default async function InvoiceDetailPage({
 }: {
     params: { id: string }
 }) {
-    const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
-        redirect('/login')
-    }
+    const { user, supabase } = await getAuthenticatedUser()
 
     const invoiceId = Number(params.id)
 

@@ -2,16 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
-import { createClient } from '@/utils/supabase/server'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 
 export async function createAClient(formData: FormData) {
-    const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const { user, supabase } = await getAuthenticatedUser()
 
     const tvaEntry = formData.get('tva')
     const tva =

@@ -22,8 +22,6 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
         setShowPopup(true)
     }
 
-    console.log('clients', clients)
-
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             {!isProfileCompleted && <Headband />}

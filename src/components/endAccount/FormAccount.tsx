@@ -7,6 +7,9 @@ import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import { finalizeAccount } from '@/app/(app)/finalizeAccount/action'
 import { Formfield } from '../atoms/Formfield'
+import { uploadLogo } from '@/utils/supabase/storage'
+import { useAuth } from '@/contexts/useAuth'
+import Image from 'next/image'
 
 const formSchema = z.object({
     firstname: z.string(),
@@ -17,11 +20,16 @@ const formSchema = z.object({
     city: z.string(),
     zipcode: z.string(),
     country: z.string(),
+    logo_url: z.string(),
     capital: z.number().optional(),
     siret: z.string(),
 })
 
 const FormAccount = () => {
+    const { user } = useAuth()
+    const [isUploading, setIsUploading] = React.useState(false)
+    const [previewUrl, setPreviewUrl] = React.useState('')
+    const [uploadError, setUploadError] = React.useState('')
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -33,6 +41,7 @@ const FormAccount = () => {
             city: '',
             zipcode: '',
             country: '',
+            logo_url: '',
             capital: 0,
             siret: '',
         },
@@ -99,14 +108,140 @@ const FormAccount = () => {
         },
     ]
 
+    const handleImageUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = e.target.files?.[0]
+        if (!file || !user) return
+
+        // Reset les erreurs précédentes
+        setUploadError('')
+
+        try {
+            setIsUploading(true)
+
+            // Upload du fichier
+            const url = await uploadLogo(file, user.id)
+
+            // Mise à jour du formulaire
+            form.setValue('logo_url', url)
+            form.clearErrors('logo_url')
+            setPreviewUrl(url)
+        } catch (error) {
+            console.error('Error uploading logo:', error)
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors de l'upload"
+            setUploadError(errorMessage)
+            form.setError('logo_url', { message: errorMessage })
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+
+        // Vérifier que le logo est bien uploadé
+        const logoUrl = form.getValues('logo_url')
+        if (!logoUrl) {
+            form.setError('logo_url', { message: 'Veuillez uploader un logo' })
+            return
+        }
+
+        // Récupérer le formData du formulaire
+        const formData = new FormData(e.currentTarget)
+
+        // Ajouter manuellement le logo_url car c'est un champ caché
+        formData.set('logo_url', logoUrl)
+
+        // Appeler l'action serveur
+        await finalizeAccount(formData)
+    }
+
     return (
         <>
             <Form {...form}>
-                <form action={finalizeAccount} className="space-y-8">
+                <form
+                    action={finalizeAccount}
+                    onSubmit={handleSubmit}
+                    className="space-y-8"
+                >
+                    <div className="space-y-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Logo de l&apos;entreprise
+                        </label>
+                        {previewUrl && (
+                            <div>
+                                <div className="mt-2">
+                                    <Image
+                                        src={previewUrl}
+                                        alt="Logo preview"
+                                        width={96}
+                                        height={96}
+                                        className="object-contain"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setPreviewUrl('')
+                                        form.setValue('logo_url', '')
+                                    }}
+                                    disabled={isUploading}
+                                >
+                                    Changer le logo
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                    {!previewUrl && (
+                        <div>
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                onChange={handleImageUpload}
+                                className="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-violet-50 file:text-violet-700
+                                    hover:file:bg-violet-100
+                                    disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isUploading}
+                            />
+                            {isUploading && (
+                                <p className="mt-2 text-sm text-gray-500">
+                                    Upload en cours...
+                                </p>
+                            )}
+                            {(uploadError ||
+                                form.formState.errors.logo_url) && (
+                                <p className="text-sm text-red-600">
+                                    {uploadError ||
+                                        form.formState.errors.logo_url?.message}
+                                </p>
+                            )}
+                            <input
+                                type="hidden"
+                                {...form.register('logo_url')}
+                            />
+
+                            <p className="text-xs text-gray-500">
+                                Formats acceptés : PNG, JPG, WEBP (max 2MB)
+                            </p>
+                        </div>
+                    )}
+
                     {formFields.map((field) => (
                         <Formfield key={field.name} form={form} {...field} />
                     ))}
-                    <Button type="submit">Confirmer</Button>
+                    <Button type="submit" disabled={isUploading}>
+                        {isUploading ? 'Upload en cours...' : 'Confirmer'}
+                    </Button>
                 </form>
             </Form>
         </>

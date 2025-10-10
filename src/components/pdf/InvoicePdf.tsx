@@ -4,6 +4,7 @@ import { Emitter } from './Emitter'
 import { Recipient } from './Recipient'
 import { Desc } from './Desc'
 import { Totals } from './Totals'
+import { Header } from './Header'
 
 type InvoicePdfProps = {
     invoice: Invoices
@@ -28,8 +29,6 @@ export function InvoicePdf({
 
     const styles = StyleSheet.create({
         page: { padding: 32, fontSize: 11 },
-        title: { fontSize: 18, color: primaryColor, marginBottom: 4 },
-        date: { fontSize: 12, color: 'grey', marginBottom: 12 },
         subtitle: { fontSize: 14, color: primaryColor, marginBottom: 12 },
         personalInfos: {
             marginTop: 12,
@@ -48,11 +47,7 @@ export function InvoicePdf({
     return (
         <Document>
             <Page size="A4" style={styles.page}>
-                <Text style={styles.title}>Devis Provisoire</Text>
-                <Text style={styles.date}>
-                    {new Date().toLocaleDateString('fr-FR')}
-                </Text>
-
+                <Header emitter={emitter} />
                 <View>
                     <View style={styles.personalInfos}>
                         <Emitter emitter={emitter} />

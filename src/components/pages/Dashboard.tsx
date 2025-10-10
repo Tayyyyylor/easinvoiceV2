@@ -6,6 +6,7 @@ import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/useAuth'
 import { CardInfos } from '../atoms/CardInfos'
+import Image from 'next/image'
 
 interface DashboardProps {
     clients: Clients[]
@@ -36,6 +37,12 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
                             <p>{profile?.lastname}</p>
                             <p>{profile?.company_name}</p>
                             <p>{profile?.address}</p>
+                            <Image
+                                src={profile?.logo_url || ''}
+                                alt="Logo"
+                                width={100}
+                                height={100}
+                            />
                         </div>
                     }
                     action={

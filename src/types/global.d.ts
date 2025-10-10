@@ -9,6 +9,7 @@ interface Profile {
     country: string
     capital: number
     siret: string
+    logo_url?: string
 }
 interface Clients {
     id: number

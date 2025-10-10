@@ -23,9 +23,13 @@ export async function finalizeAccount(formData: FormData) {
         city: formData.get('city') as string,
         zipcode: formData.get('zipcode') as string,
         country: formData.get('country') as string,
+        logo_url: formData.get('logo_url') as string,
         capital,
         siret: formData.get('siret') as string,
     }
+
+    console.log('test logo', data.logo_url)
+    console.log('test data', data)
 
     const { error } = await supabase.from('profiles').upsert({
         id: user.id,

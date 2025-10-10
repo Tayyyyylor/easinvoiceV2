@@ -10,7 +10,7 @@ export async function createInvoice(formData: FormData) {
     const { user, supabase } = await getAuthenticatedUser()
 
     // Support payload JSON pour valeurs issues de RHF
-    let payload: any = null
+    let payload: InvoiceFormPayload | null = null
     if (formData.get('payload')) {
         try {
             payload = JSON.parse(formData.get('payload') as string)
@@ -26,7 +26,9 @@ export async function createInvoice(formData: FormData) {
         ((formData.get('currency') || payload?.currency) as string) ?? 'EUR'
     const terms = ((formData.get('terms') || payload?.terms) as string) ?? null
     const client_id =
-        toNumber(formData.get('client_id') || payload?.client_id) ?? null
+        toNumber(
+            formData.get('client_id') ?? payload?.client_id?.toString() ?? null
+        ) ?? null
 
     // Validation serveur: client obligatoire
     if (!client_id) {
@@ -49,7 +51,9 @@ export async function createInvoice(formData: FormData) {
 
     // Si payload fourni, on récupère les lignes depuis payload
     if (linesMap.size === 0 && payload?.lines && Array.isArray(payload.lines)) {
-        payload.lines.forEach((l: any, i: number) => linesMap.set(i, l))
+        payload.lines.forEach((l: InvoiceFormPayload, i: number) =>
+            linesMap.set(i, l)
+        )
     }
 
     const linesArr: Array<{
@@ -126,7 +130,7 @@ export async function createInvoice(formData: FormData) {
         redirect('/error')
     }
 
-    const invoiceId = (insertedInvoice as any).id
+    const invoiceId = (insertedInvoice as InvoiceFormPayload).id
 
     // prepare items for insertion
     const itemsToInsert = linesArr.map((l) => ({

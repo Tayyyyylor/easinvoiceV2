@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 
-export const Emitter = ({ emitter }: { emitter: any }) => {
+export const Emitter = ({ emitter }: { emitter: Profile | null }) => {
     const styles = StyleSheet.create({
         container: { width: '60%' },
         th: { fontSize: 16, marginBottom: 12, fontWeight: 700 },

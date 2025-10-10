@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React from 'react'
 import dynamic from 'next/dynamic'
@@ -12,11 +11,11 @@ import { InvoicePdf } from '@/components/pdf/InvoicePdf'
 export const InvoiceDetails = ({
     invoice,
     items = [],
-    client = null,
+    client,
 }: {
-    invoice: any
-    items?: any[]
-    client?: any | null
+    invoice: Invoices
+    items?: InvoiceItems[]
+    client?: Clients
 }) => {
     const { profile } = useAuth()
     const download = async () => {

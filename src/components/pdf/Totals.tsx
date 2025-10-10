@@ -1,9 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 import { euro } from '@/helpers/pdf'
 
-export const Totals = ({ item, showTax }: { item: any; showTax: any }) => {
+export const Totals = ({
+    item,
+    showTax,
+}: {
+    item: Invoices | Quotes
+    showTax: boolean
+}) => {
     const styles = StyleSheet.create({
         container: {
             display: 'flex',

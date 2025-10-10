@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React from 'react'
 import { Form } from '../ui/form'
@@ -37,7 +36,7 @@ const createInvoiceSchema = z.object({
 
 type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
 
-export const FormInvoices = ({ clients }: { clients: any[] }) => {
+export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
     const form = useForm<CreateInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React from 'react'
 import dynamic from 'next/dynamic'
@@ -12,11 +11,11 @@ import { useAuth } from '@/contexts/useAuth'
 export const QuoteDetails = ({
     quote,
     items = [],
-    client = null,
+    client,
 }: {
-    quote: any
-    items?: any[]
-    client?: any | null
+    quote: Quotes
+    items?: QuoteItems[]
+    client?: Clients
 }) => {
     const { profile } = useAuth()
     const download = async () => {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import React from 'react'
@@ -38,7 +37,7 @@ const createQuoteSchema = z.object({
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
-export const FormQuotes = ({ clients }: { clients: any[] }) => {
+export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
         defaultValues: {

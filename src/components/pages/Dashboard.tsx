@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { Popup } from '../endAccount/Popup'
 import { useState } from 'react'
@@ -9,8 +8,8 @@ import { useAuth } from '@/contexts/useAuth'
 import { CardInfos } from '../atoms/CardInfos'
 
 interface DashboardProps {
-    clients: any[]
-    quotes: any[]
+    clients: Clients[]
+    quotes: Quotes[]
 }
 
 export default function Dashboard({ clients, quotes }: DashboardProps) {
@@ -21,6 +20,8 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
     const handleClick = () => {
         setShowPopup(true)
     }
+
+    console.log('quotes', quotes)
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">

@@ -1,10 +1,9 @@
 'use client'
 import { Button } from '@/components/ui/button'
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRouter } from 'next/navigation'
 import React from 'react'
 
-export const Invoices = ({ invoices }: { invoices: any[] }) => {
+export const Invoices = ({ invoices }: { invoices: Invoices[] }) => {
     const router = useRouter()
     return (
         <div className="flex flex-col items-center justify-center">

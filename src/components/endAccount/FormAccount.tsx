@@ -30,6 +30,7 @@ const FormAccount = () => {
     const [isUploading, setIsUploading] = React.useState(false)
     const [previewUrl, setPreviewUrl] = React.useState('')
     const [uploadError, setUploadError] = React.useState('')
+    const fileInputRef = React.useRef<HTMLInputElement>(null)
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -123,10 +124,14 @@ const FormAccount = () => {
             // Upload du fichier
             const url = await uploadLogo(file, user.id)
 
-            // Mise à jour du formulaire
+            // Ajouter un timestamp pour forcer le rechargement (cache busting)
+            const urlWithTimestamp = `${url}?t=${Date.now()}`
+
+            // Mise à jour du formulaire (on garde l'URL sans timestamp pour la base de données)
             form.setValue('logo_url', url)
             form.clearErrors('logo_url')
-            setPreviewUrl(url)
+            // Mais on utilise l'URL avec timestamp pour l'affichage
+            setPreviewUrl(urlWithTimestamp)
         } catch (error) {
             console.error('Error uploading logo:', error)
             const errorMessage =
@@ -190,6 +195,10 @@ const FormAccount = () => {
                                     onClick={() => {
                                         setPreviewUrl('')
                                         form.setValue('logo_url', '')
+                                        // Réinitialiser l'input file
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = ''
+                                        }
                                     }}
                                     disabled={isUploading}
                                 >
@@ -201,6 +210,7 @@ const FormAccount = () => {
                     {!previewUrl && (
                         <div>
                             <input
+                                ref={fileInputRef}
                                 type="file"
                                 accept="image/png,image/jpeg,image/jpg,image/webp"
                                 onChange={handleImageUpload}

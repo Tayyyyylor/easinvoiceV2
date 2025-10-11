@@ -34,7 +34,7 @@ export const InvoiceDetails = ({
 
     return (
         <div className="p-6 space-y-4">
-            <h1 className="text-xl">Devis #{invoice.id}</h1>
+            <h1 className="text-xl">Facture #{invoice.id}</h1>
             <div className="space-x-3">
                 <button className="border px-3 py-1 rounded" onClick={download}>
                     Télécharger le PDF

@@ -221,7 +221,7 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                         </Button>
                     </div>
 
-                    <Button type="submit">Créer le devis</Button>
+                    <Button type="submit">Créer la facture</Button>
                 </form>
             </Form>
         </main>

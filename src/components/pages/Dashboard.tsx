@@ -1,6 +1,6 @@
 'use client'
 import { Popup } from '../endAccount/Popup'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Headband } from '../endAccount/Headband'
 import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
@@ -22,11 +22,33 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
         setShowPopup(true)
     }
 
-    console.log('quotes', quotes)
+    // State pour l'URL du logo avec timestamp (évite les erreurs d'hydratation)
+    const [logoUrlWithTimestamp, setLogoUrlWithTimestamp] = useState(
+        profile?.logo_url || ''
+    )
+
+    // Mettre à jour l'URL avec timestamp uniquement côté client
+    useEffect(() => {
+        if (profile?.logo_url) {
+            setLogoUrlWithTimestamp(`${profile.logo_url}?t=${Date.now()}`)
+        } else {
+            setLogoUrlWithTimestamp('')
+        }
+    }, [profile?.logo_url])
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             {!isProfileCompleted && <Headband />}
+            {isProfileCompleted && (
+                <div>
+                    <Button onClick={() => router.push('/quotes/create')}>
+                        Créer un devis
+                    </Button>
+                    <Button onClick={() => router.push('/invoices/create')}>
+                        Créer une facture
+                    </Button>
+                </div>
+            )}
             <div className="relative">
                 <CardInfos
                     title="Mes infos"
@@ -37,12 +59,15 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
                             <p>{profile?.lastname}</p>
                             <p>{profile?.company_name}</p>
                             <p>{profile?.address}</p>
-                            <Image
-                                src={profile?.logo_url || ''}
-                                alt="Logo"
-                                width={100}
-                                height={100}
-                            />
+                            {logoUrlWithTimestamp && (
+                                <Image
+                                    src={logoUrlWithTimestamp}
+                                    alt="Logo"
+                                    width={100}
+                                    height={100}
+                                    unoptimized
+                                />
+                            )}
                         </div>
                     }
                     action={
@@ -55,6 +80,12 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
                     }
                 />
 
+                <Button
+                    variant="outline"
+                    onClick={() => router.push('/finalizeAccount')}
+                >
+                    Modifier le profil
+                </Button>
                 <CardInfos
                     title="Mes devis"
                     content={
@@ -123,13 +154,6 @@ export default function Dashboard({ clients, quotes }: DashboardProps) {
                 {showPopup && !isProfileCompleted && (
                     <Popup onClose={() => setShowPopup(false)} />
                 )}
-                <div>
-                    <form action="/auth/signout" method="post">
-                        <button className="button block" type="submit">
-                            Sign out
-                        </button>
-                    </form>
-                </div>
             </div>
         </main>
     )

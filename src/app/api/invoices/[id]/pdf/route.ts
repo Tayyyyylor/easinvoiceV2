@@ -37,6 +37,21 @@ export async function GET(
     if (error || !invoice)
         return NextResponse.json({ error: 'not found' }, { status: 404 })
 
+    // Récupérer le profil de l'utilisateur
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+    // Récupérer le client
+    const { data: client } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', invoice.client_id)
+        .eq('owner_id', user.id)
+        .single()
+
     // Récupération explicite des items si nécessaire
     let items = invoice.invoice_items || []
     if (!items || items.length === 0) {
@@ -51,6 +66,8 @@ export async function GET(
     const element = React.createElement(InvoicePdf as any, {
         invoice,
         items,
+        emitter: profile,
+        client,
         theme: invoice.pdf_overrides ?? {},
     }) as any
     const buffer = await renderToBuffer(element as any)

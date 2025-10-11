@@ -79,7 +79,7 @@ export const Desc = ({
                                 </Text>
                             )}
                             <Text style={styles.cellTotal}>
-                                {euro(it.total_price)}
+                                {euro((it.total_price ?? 0) / 100)}
                             </Text>
                         </View>
                     )

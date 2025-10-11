@@ -5,11 +5,11 @@ import { redirect } from 'next/navigation'
 export default async function QuoteDetailPage({
     params,
 }: {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }) {
     const { user, supabase } = await getAuthenticatedUser()
-
-    const quoteId = Number(params.id)
+    const { id } = await params
+    const quoteId = Number(id)
 
     const { data: quote, error } = await supabase
         .from('quotes')

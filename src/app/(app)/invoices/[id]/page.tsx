@@ -5,11 +5,12 @@ import { redirect } from 'next/navigation'
 export default async function InvoiceDetailPage({
     params,
 }: {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }) {
     const { user, supabase } = await getAuthenticatedUser()
 
-    const invoiceId = Number(params.id)
+    const { id } = await params
+    const invoiceId = Number(id)
 
     const { data: invoice, error } = await supabase
         .from('invoices')

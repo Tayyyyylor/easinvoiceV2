@@ -4,9 +4,11 @@ import { Navbar } from '../navbar/Navbar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false)
+    const router = useRouter()
 
     const handleProfileClick = () => {
         setIsProfileOpen(!isProfileOpen)
@@ -46,6 +48,17 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             height={20}
                         />
                     </Button>
+                </div>
+            )}
+            {isProfileOpen && (
+                <div className="absolute top-10 right-0 w-48 bg-white rounded-lg shadow-lg flex flex-col gap-2">
+                    <button onClick={() => router.push('/profile')}>
+                        Modifier Profil
+                    </button>
+                    <button>Paramètres</button>
+                    <form action="/auth/signout" method="post">
+                        <button type="submit">Déconnexion</button>
+                    </form>
                 </div>
             )}
         </header>

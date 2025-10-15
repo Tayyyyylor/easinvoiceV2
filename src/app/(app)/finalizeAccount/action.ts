@@ -28,9 +28,6 @@ export async function finalizeAccount(formData: FormData) {
         siret: formData.get('siret') as string,
     }
 
-    console.log('test logo', data.logo_url)
-    console.log('test data', data)
-
     const { error } = await supabase.from('profiles').upsert({
         id: user.id,
         ...data,

@@ -26,7 +26,11 @@ const createClientSchema = z.object({
 })
 type CreateClientValues = z.infer<typeof createClientSchema>
 
-export const FormClients = () => {
+export const FormClients = ({
+    standalone = true,
+}: {
+    standalone?: boolean
+}) => {
     const form = useForm<CreateClientValues>({
         resolver: zodResolver(createClientSchema),
         defaultValues: {
@@ -118,15 +122,26 @@ export const FormClients = () => {
             placeholder: 'Pays',
         },
     ]
+
+    const formContent = (
+        <>
+            <h2>Créer un client</h2>
+            {formFields.map((field) => (
+                <Formfield key={field.name} form={form} {...field} />
+            ))}
+            <Button type="submit">Créer le client</Button>
+        </>
+    )
+
     return (
         <Form {...form}>
-            <form className="space-y-8" action={createAClient}>
-                <h2>Créer un client</h2>
-                {formFields.map((field) => (
-                    <Formfield key={field.name} form={form} {...field} />
-                ))}
-                <Button type="submit">Créer le client</Button>
-            </form>
+            {standalone ? (
+                <form className="space-y-8" action={createAClient}>
+                    {formContent}
+                </form>
+            ) : (
+                <div className="space-y-8">{formContent}</div>
+            )}
         </Form>
     )
 }

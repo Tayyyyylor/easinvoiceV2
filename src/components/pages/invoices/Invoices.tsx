@@ -1,4 +1,5 @@
 'use client'
+import { DetailsTemplate } from '@/components/DetailsTemplate'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import React from 'react'
@@ -6,28 +7,10 @@ import React from 'react'
 export const Invoices = ({ invoices }: { invoices: Invoices[] }) => {
     const router = useRouter()
     return (
-        <div className="flex flex-col items-center justify-center">
-            <h1 className="text-2xl font-bold">Facture</h1>
-            <div className="flex flex-col items-center justify-center">
-                {invoices.map((invoice) => (
-                    <div
-                        key={invoice.id}
-                        onClick={() => router.push(`/invoices/${invoice.id}`)}
-                        className="pointer"
-                    >
-                        <h2 className="text-lg font-bold">{invoice.name}</h2>
-                        <p className="text-sm text-gray-500">
-                            {invoice.description}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            {invoice.created_at}
-                        </p>
-                    </div>
-                ))}
-            </div>
+        <DetailsTemplate title="Facture" data={invoices} link="invoices">
             <Button onClick={() => router.push('/invoices/create')}>
                 Créer une facture
             </Button>
-        </div>
+        </DetailsTemplate>
     )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Form } from '../ui/form'
@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Formfield } from '../atoms/Formfield'
+import { FormClients } from '../clients/FormClients'
 
 const quoteLineSchema = z.object({
     description: z.string().min(1),
@@ -38,6 +39,8 @@ const createQuoteSchema = z.object({
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
 export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
+    const [showNewClientForm, setShowNewClientForm] = useState(false)
+
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
         defaultValues: {
@@ -66,13 +69,6 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                     action={async (formData) => {
                         // Empêcher la soumission si aucun client n'est sélectionné
                         const values = form.getValues()
-                        if (!values.client_id) {
-                            form.setError('client_id', {
-                                type: 'required',
-                                message: 'Veuillez sélectionner un client',
-                            })
-                            return
-                        }
 
                         // Remettre le payload (inclut client_id et lines)
                         formData.append('payload', JSON.stringify(values))
@@ -84,12 +80,13 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                         <Select
                             value={form.watch('client_id')?.toString()}
                             onValueChange={(value) => {
-                                form.setValue(
-                                    'client_id',
-                                    value === 'new-client'
-                                        ? undefined
-                                        : Number(value)
-                                )
+                                if (value === 'new-client') {
+                                    setShowNewClientForm(true)
+                                    form.setValue('client_id', undefined)
+                                } else {
+                                    setShowNewClientForm(false)
+                                    form.setValue('client_id', Number(value))
+                                }
                             }}
                         >
                             <SelectTrigger className="w-full">
@@ -123,6 +120,12 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                             value={(form.watch('client_id') ?? '').toString()}
                         />
                     </div>
+
+                    {showNewClientForm && (
+                        <div className="border rounded-lg p-4 bg-gray-50">
+                            <FormClients standalone={false} />
+                        </div>
+                    )}
                     <Formfield
                         form={form}
                         name="name"

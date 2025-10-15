@@ -1,10 +1,16 @@
-import React from 'react'
+'use client'
+import React, { useState } from 'react'
 import { Navbar } from '../navbar/Navbar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
+    const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+    const handleProfileClick = () => {
+        setIsProfileOpen(!isProfileOpen)
+    }
     return (
         <header className="p-1 flex items-center sticky top-0 left-0 w-full z-1000 justify-between bg-white border-b">
             <Link href="/">
@@ -32,15 +38,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             Logout
                         </Button>
                     </form>
-                    <Button variant="outline" asChild>
-                        <Link href="/profile">
-                            <Image
-                                src="/user-default.png"
-                                alt="Profile"
-                                width={20}
-                                height={20}
-                            />
-                        </Link>
+                    <Button variant="outline" onClick={handleProfileClick}>
+                        <Image
+                            src="/user-default.png"
+                            alt="Profile"
+                            width={20}
+                            height={20}
+                        />
                     </Button>
                 </div>
             )}

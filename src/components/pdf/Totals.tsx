@@ -31,7 +31,7 @@ export const Totals = ({
         <View style={styles.container}>
             <View style={styles.row}>
                 <View style={styles.labelCol}>
-                    <Text style={styles.subtitle}>Sous-total</Text>
+                    <Text style={styles.subtitle}>Total HT</Text>
                 </View>
                 <View style={styles.valueCol}>
                     <Text>{euro((item?.subtotal_cents ?? 0) / 100)}</Text>
@@ -40,7 +40,7 @@ export const Totals = ({
             {showTax && (
                 <View style={styles.row}>
                     <View style={styles.labelCol}>
-                        <Text style={styles.subtitle}>Taxes</Text>
+                        <Text style={styles.subtitle}>TVA(%)</Text>
                     </View>
                     <View style={styles.valueCol}>
                         <Text>{euro((item?.tax_cents ?? 0) / 100)}</Text>
@@ -49,7 +49,7 @@ export const Totals = ({
             )}
             <View style={styles.row}>
                 <View style={styles.labelCol}>
-                    <Text style={styles.subtitle}>Total</Text>
+                    <Text style={styles.subtitle}>Total TTC</Text>
                 </View>
                 <View style={styles.valueCol}>
                     <Text>{euro((item?.total_cents ?? 0) / 100)}</Text>

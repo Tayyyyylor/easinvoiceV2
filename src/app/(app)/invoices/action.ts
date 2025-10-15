@@ -106,6 +106,13 @@ export async function createInvoice(formData: FormData) {
     )
     const total_cents = subtotal_cents + tax_cents
 
+    const interest_rate =
+        toNumber(
+            formData.get('interest_rate') ??
+                payload?.interest_rate?.toString() ??
+                null
+        ) ?? null
+
     // insert invoice
     const { data: insertedInvoice, error: qErr } = await supabase
         .from('invoices')
@@ -121,6 +128,9 @@ export async function createInvoice(formData: FormData) {
             tax_cents,
             total_cents,
             id_counter: '1',
+            payment_date: formData.get('payment_date') as string,
+            payment_method: formData.get('payment_method') as string,
+            interest_rate,
         })
         .select('id')
         .single()

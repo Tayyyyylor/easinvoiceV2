@@ -51,6 +51,9 @@ interface Quotes extends BaseDocument {
 
 interface Invoices extends BaseDocument {
     id_counter: string
+    payment_date: string
+    payment_method: string
+    interest_rate: number
 }
 
 interface Items {

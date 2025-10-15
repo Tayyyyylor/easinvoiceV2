@@ -2,13 +2,7 @@ import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 import { euro } from '@/helpers/pdf'
 
-export const Totals = ({
-    item,
-    showTax,
-}: {
-    item: Invoices | Quotes
-    showTax: boolean
-}) => {
+export const Totals = ({ item }: { item: Invoices | Quotes }) => {
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
@@ -37,7 +31,7 @@ export const Totals = ({
                     <Text>{euro((item?.subtotal_cents ?? 0) / 100)}</Text>
                 </View>
             </View>
-            {showTax && (
+            {item.tax_cents > 0 && (
                 <View style={styles.row}>
                     <View style={styles.labelCol}>
                         <Text style={styles.subtitle}>TVA(%)</Text>

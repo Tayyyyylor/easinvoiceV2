@@ -5,6 +5,7 @@ import { Recipient } from './Recipient'
 import { Desc } from './Desc'
 import { Totals } from './Totals'
 import { Header } from './Header'
+import { Payment } from './Payment'
 
 type InvoicePdfProps = {
     invoice: Invoices
@@ -62,7 +63,8 @@ export function InvoicePdf({
                         </View>
                         <Desc items={items} showTax={showTax} />
                     </View>
-                    <Totals item={invoice} showTax={showTax} />
+                    <Totals item={invoice} />
+                    <Payment invoice={invoice} />
                 </View>
             </Page>
         </Document>

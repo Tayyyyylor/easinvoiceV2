@@ -67,7 +67,7 @@ export function QuotePdf({
                         </View>
                         <Desc items={items} showTax={showTax} />
                     </View>
-                    <Totals item={quote} showTax={showTax} />
+                    <Totals item={quote}  />
                 </View>
             </Page>
         </Document>

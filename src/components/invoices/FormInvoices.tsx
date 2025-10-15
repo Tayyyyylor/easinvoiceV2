@@ -15,6 +15,8 @@ import {
 import { Formfield } from '../atoms/Formfield'
 import { Button } from '../ui/button'
 import { createInvoice } from '@/app/(app)/invoices/action'
+import { Checkbox } from '../ui/checkbox'
+import { Label } from '../ui/label'
 
 const invoiceLineSchema = z.object({
     description: z.string().min(1),
@@ -32,6 +34,9 @@ const createInvoiceSchema = z.object({
     lines: z.array(invoiceLineSchema).min(1),
     client_id: z.number().positive().optional(),
     name: z.string().min(1),
+    payment_date: z.string().optional(),
+    payment_method: z.string().optional(),
+    interest_rate: z.number().nonnegative().optional(),
 })
 
 type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
@@ -46,6 +51,9 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
             name: '',
             description: '',
             client_id: undefined,
+            payment_date: '30 jours fin de mois',
+            payment_method: 'Virement bancaire',
+            interest_rate: 0,
         },
     })
 
@@ -145,6 +153,10 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             label="Notes"
                             placeholder="Notes (optionnel)"
                         />
+                        <div className="flex items-center gap-2">
+                            <Checkbox id="TVA" />
+                            <Label htmlFor="TVA">TVA non applicable</Label>
+                        </div>
                     </div>
                     <div className="space-y-3">
                         <div className="text-sm font-medium">Lignes</div>
@@ -220,7 +232,27 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             + Ajouter une ligne
                         </Button>
                     </div>
-
+                    <div>
+                        <h3>Règlement</h3>
+                        <Formfield
+                            form={form}
+                            name="payment_date"
+                            label="Date de règlement"
+                            placeholder="Date de règlement"
+                        />
+                        <Formfield
+                            form={form}
+                            name="payment_method"
+                            label="Méthode de règlement"
+                            placeholder="Chèque, Virement, etc."
+                        />
+                        <Formfield
+                            form={form}
+                            name="interest_rate"
+                            label="Intérêts de retard"
+                            placeholder="Intérêts de retard"
+                        />
+                    </div>
                     <Button type="submit">Créer la facture</Button>
                 </form>
             </Form>

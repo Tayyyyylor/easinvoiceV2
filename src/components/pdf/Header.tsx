@@ -41,7 +41,7 @@ export const Header = ({ emitter }: { emitter?: Profile }) => {
 
     return (
         <View style={styles.container}>
-            <Image src={logoUrl} style={styles.logo} />
+            {logoUrl && <Image src={logoUrl} style={styles.logo} />}
             <View style={styles.titleContainer}>
                 <Text style={styles.title}>Facture Provisoire</Text>
                 <Text style={styles.date}>

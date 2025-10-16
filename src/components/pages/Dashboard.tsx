@@ -5,6 +5,7 @@ import { Headband } from '../endAccount/Headband'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/useAuth'
 import { DashboardCard } from '../dashboard/DashboardCard'
+import CheckoutButton from '../atoms/CheckoutButton'
 
 interface DashboardProps {
     clients: Clients[]
@@ -18,7 +19,7 @@ export default function Dashboard({
     invoices,
 }: DashboardProps) {
     const [showPopup, setShowPopup] = useState(true)
-    const { profile } = useAuth()
+    const { profile, user } = useAuth()
     const router = useRouter()
     const isProfileCompleted = profile?.firstname && profile?.lastname
     const handleClick = () => {
@@ -44,6 +45,12 @@ export default function Dashboard({
                     }
                     data={quotes}
                 />
+                {profile && (
+                    <CheckoutButton
+                        priceId={process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || ''}
+                        supabaseUserId={user?.id}
+                    />
+                )}
                 <DashboardCard
                     title="Mes factures"
                     buttonLabel="Créer une facture"

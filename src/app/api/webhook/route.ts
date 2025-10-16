@@ -1,27 +1,56 @@
+import { stripe } from '@/lib/stripe'
+import { webhookClient } from '@/utils/supabase/webhook'
 import Stripe from 'stripe'
-import { createClient } from '@/utils/supabase/server'
+import { headers } from 'next/headers'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('Missing STRIPE_SECRET_KEY')
+interface StripeSubscription extends Stripe.Subscription {
+    current_period_start: number
+    current_period_end: number
 }
 
 if (!process.env.STRIPE_WEBHOOK_SECRET) {
     throw new Error('Missing STRIPE_WEBHOOK_SECRET')
 }
 
+// Configuration importante pour les webhooks
+export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-09-30.clover',
-})
+// Route GET pour tester que le webhook est accessible
+export async function GET() {
+    console.log('✅ GET request reçu sur /api/webhook')
+    return new Response('Webhook endpoint is working!', { status: 200 })
+}
 
-export async function POST(req: Request) {
-    const supabase = await createClient()
-    const body = await req.text()
-    const signature = req.headers.get('stripe-signature') || ''
+export async function POST(request: Request) {
+    // ⚠️ CE LOG DOIT S'AFFICHER QUOI QU'IL ARRIVE
+    console.log(
+        "🚨🚨🚨 POST APPELÉ - SI VOUS NE VOYEZ PAS CE LOG, LE WEBHOOK N'EST PAS APPELÉ 🚨🚨🚨"
+    )
+    console.log('🔔 ========== WEBHOOK POST REÇU ==========')
 
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-        return new Response('Configuration webhook manquante', { status: 400 })
+    const supabase = webhookClient
+
+    let body: string
+    let signature: string
+
+    try {
+        // Lire le body brut
+        body = await request.text()
+
+        // Récupérer la signature
+        const headersList = await headers()
+        signature = headersList.get('stripe-signature') || ''
+
+        console.log('📦 Body length:', body.length)
+        console.log('🔑 Signature présente:', !!signature)
+        console.log(
+            '🔐 Webhook secret présent:',
+            !!process.env.STRIPE_WEBHOOK_SECRET
+        )
+    } catch (error) {
+        console.error('❌ Erreur lecture body:', error)
+        return new Response('Erreur lecture body', { status: 400 })
     }
 
     let event: Stripe.Event
@@ -30,11 +59,12 @@ export async function POST(req: Request) {
         event = stripe.webhooks.constructEvent(
             body,
             signature,
-            process.env.STRIPE_WEBHOOK_SECRET
+            process.env.STRIPE_WEBHOOK_SECRET!
         )
+        console.log('✅ Signature vérifiée, type:', event.type)
     } catch (error) {
         const err = error as Error
-        console.error('Erreur de signature webhook:', err.message)
+        console.error('❌ Erreur de signature:', err.message)
         return new Response(`Erreur webhook: ${err.message}`, { status: 400 })
     }
 
@@ -42,19 +72,54 @@ export async function POST(req: Request) {
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object as Stripe.Checkout.Session
+                console.log('💳 Session complétée:', {
+                    sessionId: session.id,
+                    subscription: session.subscription,
+                    customer: session.customer,
+                    mode: session.mode,
+                })
+
+                // Vérifier que c'est bien un abonnement
+                if (session.mode !== 'subscription') {
+                    console.log('ℹ️ Session pas en mode subscription, ignoré')
+                    return new Response('OK - Not a subscription', {
+                        status: 200,
+                    })
+                }
 
                 if (!session.subscription || !session.customer) {
-                    console.error('Session sans subscription ou customer')
+                    console.error('❌ Session sans subscription ou customer')
                     return new Response('Session invalide', { status: 400 })
                 }
 
-                // Récupérer les détails de l'abonnement
-                const subscription = await stripe.subscriptions.retrieve(
+                // IMPORTANT : Attendre un peu que Stripe finalise l'abonnement
+                await new Promise((resolve) => setTimeout(resolve, 2000))
+
+                // Récupérer l'abonnement complet
+                const subscription = (await stripe.subscriptions.retrieve(
                     session.subscription as string
-                )
+                )) as unknown as StripeSubscription
+
+                console.log('📦 Subscription récupérée:', {
+                    id: subscription.id,
+                    status: subscription.status,
+                    metadata: subscription.metadata,
+                })
+
+                const supabaseUserId = subscription.metadata?.supabase_user_id
+                if (!supabaseUserId) {
+                    console.error('❌ Pas de supabase_user_id dans metadata')
+                    return new Response('Metadata manquante', { status: 400 })
+                }
+
+                // Log des timestamps pour debug
+                console.log('🕒 Timestamps reçus:', {
+                    start: subscription.current_period_start,
+                    end: subscription.current_period_end,
+                })
 
                 const subscriptionData = {
-                    user_id: subscription.metadata.supabase_user_id,
+                    user_id: supabaseUserId,
                     stripe_subscription_id: subscription.id,
                     stripe_customer_id:
                         typeof session.customer === 'string'
@@ -62,63 +127,130 @@ export async function POST(req: Request) {
                             : session.customer.id,
                     status: subscription.status,
                     price_id: subscription.items.data[0]?.price.id,
-                    current_period_start: new Date(
-                        Number(subscription.created || 0) * 1000
-                    ).toISOString(),
-                    current_period_end: new Date(
-                        Number(subscription.created || 0) * 1000
-                    ).toISOString(),
-                    cancel_at_period_end:
-                        subscription.cancel_at_period_end || false,
+                    current_period_start: subscription.current_period_start
+                        ? new Date(
+                              subscription.current_period_start * 1000
+                          ).toISOString()
+                        : null,
+                    current_period_end: subscription.current_period_end
+                        ? new Date(
+                              subscription.current_period_end * 1000
+                          ).toISOString()
+                        : null,
                 }
 
-                await supabase
-                    .from('app_subscriptions')
-                    .upsert(subscriptionData, {
-                        onConflict: 'stripe_subscription_id',
+                console.log(
+                    '💾 Insertion dans app_subscriptions:',
+                    subscriptionData
+                )
+
+                // Vérifier la connexion Supabase
+                console.log(
+                    '🔌 Supabase URL:',
+                    process.env.NEXT_PUBLIC_SUPABASE_URL
+                )
+                console.log(
+                    '🔑 Service Role Key présente:',
+                    !!process.env.SUPABASE_SERVICE_ROLE_KEY
+                )
+
+                const { error: upsertError, data: insertedData } =
+                    await supabase
+                        .from('app_subscriptions')
+                        .upsert(subscriptionData, {
+                            onConflict: 'stripe_subscription_id',
+                        })
+                        .select()
+
+                console.log('📊 Résultat upsert:', {
+                    insertedData,
+                    upsertError,
+                })
+
+                if (upsertError) {
+                    console.error('❌ Erreur Supabase:', upsertError)
+                    return new Response(`Erreur DB: ${upsertError.message}`, {
+                        status: 500,
                     })
+                }
+
+                console.log('✅ Subscription enregistrée:', insertedData)
                 break
             }
 
             case 'customer.subscription.updated':
             case 'customer.subscription.deleted': {
-                const subscription = event.data.object as Stripe.Subscription
+                const subscription = event.data.object as StripeSubscription
 
-                if (!subscription.metadata.supabase_user_id) {
-                    console.error('Subscription sans supabase_user_id')
+                console.log(`📝 Subscription ${event.type}:`, {
+                    id: subscription.id,
+                    status: subscription.status,
+                    metadata: subscription.metadata,
+                })
+
+                const supabaseUserId = subscription.metadata?.supabase_user_id
+                if (!supabaseUserId) {
+                    console.error('❌ Pas de supabase_user_id dans metadata')
                     return new Response('Metadata manquante', { status: 400 })
                 }
 
+                // Log des timestamps pour debug
+                console.log('🕒 Timestamps reçus:', {
+                    start: subscription.current_period_start,
+                    end: subscription.current_period_end,
+                })
+
                 const subscriptionData = {
-                    user_id: subscription.metadata.supabase_user_id,
+                    user_id: supabaseUserId,
                     stripe_subscription_id: subscription.id,
+                    stripe_customer_id:
+                        typeof subscription.customer === 'string'
+                            ? subscription.customer
+                            : subscription.customer.id,
                     status: subscription.status,
                     price_id: subscription.items.data[0]?.price.id,
-                    current_period_start: new Date(
-                        Number(subscription.created || 0) * 1000
-                    ).toISOString(),
-                    current_period_end: new Date(
-                        Number(subscription.created || 0) * 1000
-                    ).toISOString(),
-                    cancel_at_period_end:
-                        subscription.cancel_at_period_end || false,
+                    current_period_start: subscription.current_period_start
+                        ? new Date(
+                              subscription.current_period_start * 1000
+                          ).toISOString()
+                        : null,
+                    current_period_end: subscription.current_period_end
+                        ? new Date(
+                              subscription.current_period_end * 1000
+                          ).toISOString()
+                        : null,
                 }
 
-                await supabase
+                console.log('💾 Mise à jour subscription:', subscriptionData)
+
+                const { error: upsertError, data: updatedData } = await supabase
                     .from('app_subscriptions')
                     .upsert(subscriptionData, {
                         onConflict: 'stripe_subscription_id',
                     })
+                    .select()
+
+                if (upsertError) {
+                    console.error('❌ Erreur Supabase:', upsertError)
+                    return new Response(`Erreur DB: ${upsertError.message}`, {
+                        status: 500,
+                    })
+                }
+
+                console.log('✅ Subscription mise à jour:', updatedData)
                 break
             }
 
             default:
-                console.log('Événement Stripe non géré:', event.type)
+                console.log('ℹ️ Événement non géré:', event.type)
         }
 
         return new Response('OK', { status: 200 })
     } catch (err) {
-        console.error('Erreur handler webhook:', err)
-        return new Response('Erreur serveur', { status: 500 })
+        console.error('❌ Erreur handler:', err)
+        return new Response(
+            `Erreur: ${err instanceof Error ? err.message : 'Inconnue'}`,
+            { status: 500 }
+        )
     }
 }

@@ -1,18 +1,10 @@
-import Stripe from 'stripe'
+import { stripe } from '@/lib/stripe'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('Missing STRIPE_SECRET_KEY environment variable')
-}
 
 if (!process.env.NEXT_PUBLIC_APP_URL) {
     throw new Error('Missing NEXT_PUBLIC_APP_URL environment variable')
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-09-30.clover',
-})
 
 export async function POST(req: Request) {
     const supabase = await createClient()
@@ -98,7 +90,7 @@ export async function POST(req: Request) {
                 payment_method_types: ['card'],
                 line_items: [{ price: priceId, quantity: 1 }],
                 customer: stripeCustomerId,
-                success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+                success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
                 cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
                 subscription_data: {
                     metadata: { supabase_user_id: supabaseUserId },

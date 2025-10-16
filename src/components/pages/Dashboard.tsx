@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/useAuth'
 import { DashboardCard } from '../dashboard/DashboardCard'
 import CheckoutButton from '../atoms/CheckoutButton'
+import { useSubscription } from '@/hooks/useSubscription'
 
 interface DashboardProps {
     clients: Clients[]
@@ -19,12 +20,15 @@ export default function Dashboard({
     invoices,
 }: DashboardProps) {
     const [showPopup, setShowPopup] = useState(true)
+    const { isSubscribed } = useSubscription()
     const { profile, user } = useAuth()
     const router = useRouter()
     const isProfileCompleted = profile?.firstname && profile?.lastname
     const handleClick = () => {
         setShowPopup(true)
     }
+
+    console.log('isSubscribed', isSubscribed)
 
     return (
         <main className="flex flex-col items-center justify-center h-screen p-5">
@@ -45,7 +49,7 @@ export default function Dashboard({
                     }
                     data={quotes}
                 />
-                {profile && (
+                {!isSubscribed && (
                     <CheckoutButton
                         priceId={process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || ''}
                         supabaseUserId={user?.id}

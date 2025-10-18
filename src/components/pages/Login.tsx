@@ -1,6 +1,7 @@
 'use client'
 import { login } from '@/app/(auth)/login/actions'
 import React from 'react'
+import { useFormState } from 'react-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '../ui/form'
@@ -17,6 +18,8 @@ const formSchema = z.object({
 })
 type LoginValues = z.infer<typeof formSchema>
 const Login = () => {
+    const [state, formAction] = useFormState(login, null)
+
     const form = useForm<LoginValues>({
         mode: 'onChange', // Valider à chaque changement
         resolver: zodResolver(formSchema),
@@ -42,6 +45,14 @@ const Login = () => {
     const formContent = (
         <>
             <h2>Connexion</h2>
+            {state?.error && (
+                <div
+                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                    role="alert"
+                >
+                    <span className="block sm:inline">{state.error}</span>
+                </div>
+            )}
             {formFields.map((field) => (
                 <Formfield key={field.name} form={form} {...field} />
             ))}
@@ -60,7 +71,7 @@ const Login = () => {
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             <Form {...form}>
-                <form action={login} className="space-y-8">
+                <form action={formAction} className="space-y-8">
                     {formContent}
                 </form>
             </Form>

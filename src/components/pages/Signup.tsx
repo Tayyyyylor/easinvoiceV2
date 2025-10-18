@@ -1,6 +1,7 @@
 'use client'
 import { signup } from '@/app/(auth)/login/actions'
 import React from 'react'
+import { useFormState } from 'react-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '../ui/form'
@@ -37,6 +38,8 @@ const formSchema = z
 type SignupValues = z.infer<typeof formSchema>
 
 const Signup = () => {
+    const [state, formAction] = useFormState(signup, null)
+
     const form = useForm<SignupValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -69,6 +72,14 @@ const Signup = () => {
     const formContent = (
         <>
             <h2>Inscription</h2>
+            {state?.error && (
+                <div
+                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                    role="alert"
+                >
+                    <span className="block sm:inline">{state.error}</span>
+                </div>
+            )}
             {formFields.map((field) => (
                 <Formfield key={field.name} form={form} {...field} />
             ))}
@@ -87,16 +98,7 @@ const Signup = () => {
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             <Form {...form}>
-                <form
-                    className="space-y-8"
-                    action={async (formData: FormData) => {
-                        const result = await signup(formData)
-                        if (result?.error) {
-                            form.setError('email', { message: result.error })
-                            return
-                        }
-                    }}
-                >
+                <form action={formAction} className="space-y-8">
                     {formContent}
                 </form>
             </Form>

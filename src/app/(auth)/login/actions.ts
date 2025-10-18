@@ -5,7 +5,11 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
 
-export async function login(formData: FormData) {
+type AuthState = {
+    error?: string
+} | null
+
+export async function login(prevState: AuthState, formData: FormData) {
     const supabase = await createClient()
 
     // type-casting here for convenience
@@ -18,14 +22,18 @@ export async function login(formData: FormData) {
     const { error } = await supabase.auth.signInWithPassword(data)
 
     if (error) {
-        redirect('/error')
+        // Retourner le message d'erreur exact de Supabase
+        console.log('Supabase error:', error)
+        return {
+            error: error.message,
+        }
     }
 
     revalidatePath('/', 'layout')
     redirect('/dashboard')
 }
 
-export async function signup(formData: FormData) {
+export async function signup(prevState: AuthState, formData: FormData) {
     const supabase = await createClient()
 
     // type-casting here for convenience
@@ -48,8 +56,11 @@ export async function signup(formData: FormData) {
     const { error } = await supabase.auth.signUp(data)
 
     if (error) {
-        console.log('error', error)
-        redirect('/error')
+        console.log('Supabase signup error:', error)
+        // Retourner le message d'erreur exact de Supabase
+        return {
+            error: error.message,
+        }
     }
 
     revalidatePath('/', 'layout')

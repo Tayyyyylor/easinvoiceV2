@@ -1,13 +1,8 @@
 import Dashboard from '@/components/pages/Dashboard'
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 
 export default async function DashboardPage() {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const { user, supabase } = await getAuthenticatedUser()
 
     const { data: clients, error } = await supabase
         .from('clients')
@@ -21,6 +16,16 @@ export default async function DashboardPage() {
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false })
 
+    const { data: invoices, error: invoicesError } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (invoicesError) {
+        console.error('fetch invoices error', invoicesError)
+    }
+
     if (error) {
         console.error('fetch clients error', error)
     }
@@ -29,5 +34,11 @@ export default async function DashboardPage() {
         console.error('fetch quotes error', quotesError)
     }
 
-    return <Dashboard clients={clients ?? []} quotes={quotes ?? []} />
+    return (
+        <Dashboard
+            clients={clients ?? []}
+            quotes={quotes ?? []}
+            invoices={invoices ?? []}
+        />
+    )
 }

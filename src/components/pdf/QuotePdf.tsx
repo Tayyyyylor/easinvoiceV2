@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { Emitter } from './Emitter'
@@ -7,17 +6,10 @@ import { Desc } from './Desc'
 import { Totals } from './Totals'
 
 type QuotePdfProps = {
-    quote: any
-    emitter: any
-    client: any
-    items: Array<{
-        description: string
-        quantity: number
-        unit_price: number
-        tax_rate: number
-        total_price: number
-        type?: string
-    }>
+    quote: Quotes
+    emitter: Profile
+    client?: Clients
+    items: QuoteItems[]
     theme?: {
         primaryColor?: string
         hideTax?: boolean
@@ -75,7 +67,7 @@ export function QuotePdf({
                         </View>
                         <Desc items={items} showTax={showTax} />
                     </View>
-                    <Totals item={quote} showTax={showTax} />
+                    <Totals item={quote} />
                 </View>
             </Page>
         </Document>

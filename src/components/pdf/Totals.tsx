@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 import { euro } from '@/helpers/pdf'
 
-export const Totals = ({ item, showTax }: { item: any; showTax: any }) => {
+export const Totals = ({ item }: { item: Invoices | Quotes }) => {
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
@@ -26,16 +25,16 @@ export const Totals = ({ item, showTax }: { item: any; showTax: any }) => {
         <View style={styles.container}>
             <View style={styles.row}>
                 <View style={styles.labelCol}>
-                    <Text style={styles.subtitle}>Sous-total</Text>
+                    <Text style={styles.subtitle}>Total HT</Text>
                 </View>
                 <View style={styles.valueCol}>
                     <Text>{euro((item?.subtotal_cents ?? 0) / 100)}</Text>
                 </View>
             </View>
-            {showTax && (
+            {item.tax_cents > 0 && (
                 <View style={styles.row}>
                     <View style={styles.labelCol}>
-                        <Text style={styles.subtitle}>Taxes</Text>
+                        <Text style={styles.subtitle}>TVA(%)</Text>
                     </View>
                     <View style={styles.valueCol}>
                         <Text>{euro((item?.tax_cents ?? 0) / 100)}</Text>
@@ -44,7 +43,7 @@ export const Totals = ({ item, showTax }: { item: any; showTax: any }) => {
             )}
             <View style={styles.row}>
                 <View style={styles.labelCol}>
-                    <Text style={styles.subtitle}>Total</Text>
+                    <Text style={styles.subtitle}>Total TTC</Text>
                 </View>
                 <View style={styles.valueCol}>
                     <Text>{euro((item?.total_cents ?? 0) / 100)}</Text>

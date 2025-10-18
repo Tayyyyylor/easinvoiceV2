@@ -3,18 +3,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
 import { eurosToCents, toNumber } from '@/helpers/conversions'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 
 export async function createQuote(formData: FormData) {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const { user, supabase } = await getAuthenticatedUser()
 
     // Support payload JSON pour valeurs issues de RHF
-    let payload: any = null
+    let payload: QuoteFormPayload | null = null
     if (formData.get('payload')) {
         try {
             payload = JSON.parse(formData.get('payload') as string)
@@ -24,7 +20,11 @@ export async function createQuote(formData: FormData) {
     }
 
     const validityDays =
-        toNumber(formData.get('validity_days') || payload?.validity_days) ?? 30
+        toNumber(
+            formData.get('validity_days') ??
+                payload?.validity_days?.toString() ??
+                null
+        ) ?? 30
     const description =
         ((formData.get('description') || payload?.description) as string) ??
         null
@@ -32,7 +32,9 @@ export async function createQuote(formData: FormData) {
         ((formData.get('currency') || payload?.currency) as string) ?? 'EUR'
     const terms = ((formData.get('terms') || payload?.terms) as string) ?? null
     const client_id =
-        toNumber(formData.get('client_id') || payload?.client_id) ?? null
+        toNumber(
+            formData.get('client_id') ?? payload?.client_id?.toString() ?? null
+        ) ?? null
 
     // Validation serveur: client obligatoire
     if (!client_id) {
@@ -55,7 +57,9 @@ export async function createQuote(formData: FormData) {
 
     // Si payload fourni, on récupère les lignes depuis payload
     if (linesMap.size === 0 && payload?.lines && Array.isArray(payload.lines)) {
-        payload.lines.forEach((l: any, i: number) => linesMap.set(i, l))
+        payload.lines.forEach((l: QuoteFormPayload, i: number) =>
+            linesMap.set(i, l)
+        )
     }
 
     const linesArr: Array<{
@@ -132,7 +136,7 @@ export async function createQuote(formData: FormData) {
         redirect('/error')
     }
 
-    const quoteId = (insertedQuote as any).id
+    const quoteId = (insertedQuote as QuoteFormPayload).id
 
     // prepare items for insertion
     const itemsToInsert = linesArr.map((l) => ({

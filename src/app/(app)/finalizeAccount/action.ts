@@ -2,15 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
-import { createClient } from '@/utils/supabase/server'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 
 export async function finalizeAccount(formData: FormData) {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const { user, supabase } = await getAuthenticatedUser()
 
     // type-casting here for convenience
     // in practice, you should validate your inputs
@@ -28,10 +23,10 @@ export async function finalizeAccount(formData: FormData) {
         city: formData.get('city') as string,
         zipcode: formData.get('zipcode') as string,
         country: formData.get('country') as string,
+        logo_url: formData.get('logo_url') as string,
         capital,
         siret: formData.get('siret') as string,
     }
-    console.log('data', data)
 
     const { error } = await supabase.from('profiles').upsert({
         id: user.id,

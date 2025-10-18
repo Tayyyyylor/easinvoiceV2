@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 
-export const Recipient = ({ client }: { client: any }) => {
+export const Recipient = ({ client }: { client?: Clients }) => {
     const styles = StyleSheet.create({
         container: { width: '40%' },
         th: { fontSize: 16, marginBottom: 12, fontWeight: 700 },

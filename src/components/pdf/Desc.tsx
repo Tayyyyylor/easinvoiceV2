@@ -1,9 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { euro } from '@/helpers/pdf'
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 
-export const Desc = ({ items, showTax }: { items: any; showTax: any }) => {
+export const Desc = ({
+    items,
+    showTax,
+}: {
+    items: InvoiceItems[] | QuoteItems[]
+    showTax: boolean
+}) => {
     const styles = StyleSheet.create({
         container: {
             marginBottom: 10,
@@ -57,8 +62,7 @@ export const Desc = ({ items, showTax }: { items: any; showTax: any }) => {
                     <Text style={styles.cellTotal}>Total HT</Text>
                 </View>
                 {/* Table rows */}
-                {items.map((it: any, i: any) => {
-                    console.log('test it', it)
+                {items.map((it: InvoiceItems | QuoteItems, i: number) => {
                     return (
                         <View key={i} style={styles.tableRow}>
                             <Text style={styles.cellType}>{it.type}</Text>
@@ -75,7 +79,7 @@ export const Desc = ({ items, showTax }: { items: any; showTax: any }) => {
                                 </Text>
                             )}
                             <Text style={styles.cellTotal}>
-                                {euro(it.total_price)}
+                                {euro((it.total_price ?? 0) / 100)}
                             </Text>
                         </View>
                     )

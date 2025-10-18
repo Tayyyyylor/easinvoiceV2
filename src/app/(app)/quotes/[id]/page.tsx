@@ -1,22 +1,15 @@
-import { QuoteDetails } from '@/components/pages/QuoteDetails'
-import { createClient } from '@/utils/supabase/server'
+import { QuoteDetails } from '@/components/pages/quotes/QuoteDetails'
+import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 import { redirect } from 'next/navigation'
 
 export default async function QuoteDetailPage({
     params,
 }: {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }) {
-    const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
-        redirect('/login')
-    }
-
-    const quoteId = Number(params.id)
+    const { user, supabase } = await getAuthenticatedUser()
+    const { id } = await params
+    const quoteId = Number(id)
 
     const { data: quote, error } = await supabase
         .from('quotes')

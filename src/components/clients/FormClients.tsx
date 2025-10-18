@@ -26,7 +26,11 @@ const createClientSchema = z.object({
 })
 type CreateClientValues = z.infer<typeof createClientSchema>
 
-export const FormClients = () => {
+export const FormClients = ({
+    standalone = true,
+}: {
+    standalone?: boolean
+}) => {
     const form = useForm<CreateClientValues>({
         resolver: zodResolver(createClientSchema),
         defaultValues: {
@@ -46,96 +50,98 @@ export const FormClients = () => {
             naf_code: '',
         },
     })
+    const formFields = [
+        {
+            name: 'type',
+            label: 'Type',
+            placeholder: 'Type',
+        },
+        {
+            name: 'firstname',
+            label: 'Prénom',
+            placeholder: 'Prénom',
+        },
+        {
+            name: 'lastname',
+            label: 'Nom',
+            placeholder: 'Nom',
+        },
+        {
+            name: 'company_name',
+            label: 'Nom de la société',
+            placeholder: 'Nom de la société',
+        },
+        {
+            name: 'email',
+            label: 'Email',
+            placeholder: 'Email',
+        },
+        {
+            name: 'phone',
+            label: 'Téléphone',
+            placeholder: 'Téléphone',
+        },
+        {
+            name: 'siret',
+            label: 'Siret',
+            placeholder: 'Siret',
+        },
+        {
+            name: 'tva',
+            label: 'TVA',
+            placeholder: 'TVA',
+        },
+        {
+            name: 'naf_code',
+            label: 'Code NAF',
+            placeholder: 'Code NAF',
+        },
+        {
+            name: 'address',
+            label: 'Adresse',
+            placeholder: 'Adresse',
+        },
+        {
+            name: 'additional_address',
+            label: "Complément d'adresse",
+            placeholder: "Complément d'adresse",
+        },
+        {
+            name: 'city',
+            label: 'Ville',
+            placeholder: 'Ville',
+        },
+        {
+            name: 'zipcode',
+            label: 'Code postal',
+            placeholder: 'Code postal',
+        },
+        {
+            name: 'country',
+            label: 'Pays',
+            placeholder: 'Pays',
+        },
+    ]
+
+    const formContent = (
+        <>
+            <h2>Créer un client</h2>
+            {formFields.map((field) => (
+                <Formfield key={field.name} form={form} {...field} />
+            ))}
+            <Button type="submit">Créer le client</Button>
+        </>
+    )
+
     return (
         <Form {...form}>
-            <form className="space-y-8" action={createAClient}>
-                <h2>Créer un client</h2>
-                <Formfield
-                    form={form}
-                    name="type"
-                    label="Type"
-                    placeholder="Type"
-                />
-                <Formfield
-                    form={form}
-                    name="firstname"
-                    label="Prénom"
-                    placeholder="Prénom"
-                />
-                <Formfield
-                    form={form}
-                    name="lastname"
-                    label="Nom"
-                    placeholder="Nom"
-                />
-                <Formfield
-                    form={form}
-                    name="company_name"
-                    label="Nom de la société"
-                    placeholder="Nom de la société"
-                />
-                <Formfield
-                    form={form}
-                    name="email"
-                    label="Email"
-                    placeholder="Email"
-                />
-                <Formfield
-                    form={form}
-                    name="phone"
-                    label="Téléphone"
-                    placeholder="Téléphone"
-                />
-                <Formfield
-                    form={form}
-                    name="siret"
-                    label="Siret"
-                    placeholder="Siret"
-                />
-                <Formfield
-                    form={form}
-                    name="tva"
-                    label="TVA"
-                    placeholder="TVA"
-                />
-                <Formfield
-                    form={form}
-                    name="naf_code"
-                    label="Code NAF"
-                    placeholder="Code NAF"
-                />
-                <Formfield
-                    form={form}
-                    name="address"
-                    label="Adresse"
-                    placeholder="Adresse"
-                />
-                <Formfield
-                    form={form}
-                    name="additional_address"
-                    label="Complément d'adresse"
-                    placeholder="Complément d'adresse"
-                />
-                <Formfield
-                    form={form}
-                    name="city"
-                    label="Ville"
-                    placeholder="Ville"
-                />
-                <Formfield
-                    form={form}
-                    name="zipcode"
-                    label="Code postal"
-                    placeholder="Code postal"
-                />
-                <Formfield
-                    form={form}
-                    name="country"
-                    label="Pays"
-                    placeholder="Pays"
-                />
-                <Button type="submit">Créer le client</Button>
-            </form>
+            {standalone ? (
+                <form className="space-y-8" action={createAClient}>
+                    {formContent}
+                </form>
+            ) : (
+                <div className="space-y-8">{formContent}</div>
+            )}
         </Form>
     )
 }

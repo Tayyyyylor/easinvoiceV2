@@ -1,129 +1,88 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { Popup } from '../endAccount/Popup'
 import { useState } from 'react'
 import { Headband } from '../endAccount/Headband'
-import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/useAuth'
-import { CardInfos } from '../atoms/CardInfos'
+import { DashboardCard } from '../dashboard/DashboardCard'
+import { useSubscription } from '@/hooks/useSubscription'
+import PricingOptions from '../subscription/PricingOptions'
 
 interface DashboardProps {
-    clients: any[]
-    quotes: any[]
+    clients: Clients[]
+    quotes: Quotes[]
+    invoices: Invoices[]
 }
 
-export default function Dashboard({ clients, quotes }: DashboardProps) {
+export default function Dashboard({
+    clients,
+    quotes,
+    invoices,
+}: DashboardProps) {
     const [showPopup, setShowPopup] = useState(true)
-    const { user, profile } = useAuth()
+    const { isSubscribed } = useSubscription()
+    const { profile, user } = useAuth()
     const router = useRouter()
     const isProfileCompleted = profile?.firstname && profile?.lastname
     const handleClick = () => {
         setShowPopup(true)
     }
 
-    console.log('clients', clients)
+    console.log('isSubscribed', isSubscribed)
 
     return (
-        <main className="flex flex-col items-center justify-center h-screen">
+        <main className="flex flex-col items-center justify-center h-screen p-5">
             {!isProfileCompleted && <Headband />}
-            <div className="relative">
-                <CardInfos
-                    title="Mes infos"
-                    content={
-                        <div>
-                            <p>{user?.email}</p>
-                            <p>{profile?.firstname}</p>
-                            <p>{profile?.lastname}</p>
-                            <p>{profile?.company_name}</p>
-                            <p>{profile?.address}</p>
-                        </div>
-                    }
-                    action={
-                        <div>
-                            <p>{profile?.city}</p>
-                            <p>{profile?.zipcode}</p>
-                            <p>{profile?.capital}</p>
-                            <p>{profile?.siret}</p>
-                        </div>
-                    }
-                />
-
-                <CardInfos
+            <div className="relative flex flex-row items-center justify-center gap-8 w-full">
+                <DashboardCard
                     title="Mes devis"
-                    content={
-                        <div>
-                            {quotes.map((quote) => (
-                                <div key={quote.id}>
-                                    <p>{quote.name}</p>
-                                </div>
-                            ))}
-                        </div>
+                    buttonLabel="Créer un devis"
+                    onClick={
+                        isProfileCompleted
+                            ? () => router.push('/quotes/create')
+                            : handleClick
                     }
-                    action={
-                        <Button
-                            onClick={
-                                isProfileCompleted
-                                    ? () => router.push('/quotes')
-                                    : handleClick
-                            }
-                        >
-                            Voir plus
-                        </Button>
+                    onClickMore={
+                        isProfileCompleted
+                            ? () => router.push('/quotes')
+                            : handleClick
                     }
+                    data={quotes}
                 />
-                <CardInfos
+                {!isSubscribed && <PricingOptions userId={user?.id} />}
+                <DashboardCard
                     title="Mes factures"
-                    content=""
-                    action={
-                        <Button
-                            onClick={
-                                isProfileCompleted
-                                    ? () => router.push('/invoices')
-                                    : handleClick
-                            }
-                        >
-                            Voir plus
-                        </Button>
+                    buttonLabel="Créer une facture"
+                    onClick={
+                        isProfileCompleted
+                            ? () => router.push('/invoices/create')
+                            : handleClick
                     }
+                    onClickMore={
+                        isProfileCompleted
+                            ? () => router.push('/invoices')
+                            : handleClick
+                    }
+                    data={invoices}
                 />
-                <CardInfos
+                <DashboardCard
                     title="Mes clients"
-                    content={
-                        <div>
-                            {clients.map((client) => (
-                                <div key={client.id}>
-                                    {client.firstname !== '' ? (
-                                        <p>{client.firstname}</p>
-                                    ) : (
-                                        <p>{client.company_name}</p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                    buttonLabel="Créer un client"
+                    onClick={
+                        isProfileCompleted
+                            ? () => router.push('/clients/create')
+                            : handleClick
                     }
-                    action={
-                        <Button
-                            onClick={
-                                isProfileCompleted
-                                    ? () => router.push('/clients')
-                                    : handleClick
-                            }
-                        >
-                            Voir plus
-                        </Button>
+                    onClickMore={
+                        isProfileCompleted
+                            ? () => router.push('/clients')
+                            : handleClick
                     }
+                    data={clients}
                 />
                 {showPopup && !isProfileCompleted && (
                     <Popup onClose={() => setShowPopup(false)} />
                 )}
-                <div>
-                    <form action="/auth/signout" method="post">
-                        <button className="button block" type="submit">
-                            Sign out
-                        </button>
-                    </form>
-                </div>
             </div>
         </main>
     )

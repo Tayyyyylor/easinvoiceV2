@@ -24,9 +24,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
     // ⚠️ CE LOG DOIT S'AFFICHER QUOI QU'IL ARRIVE
-    console.log(
-        "🚨🚨🚨 POST APPELÉ - SI VOUS NE VOYEZ PAS CE LOG, LE WEBHOOK N'EST PAS APPELÉ 🚨🚨🚨"
-    )
+
     console.log('🔔 ========== WEBHOOK POST REÇU ==========')
 
     const supabase = webhookClient
@@ -42,14 +40,12 @@ export async function POST(request: Request) {
         const headersList = await headers()
         signature = headersList.get('stripe-signature') || ''
 
-        console.log('📦 Body length:', body.length)
-        console.log('🔑 Signature présente:', !!signature)
         console.log(
-            '🔐 Webhook secret présent:',
+            'Webhook secret présent:',
             !!process.env.STRIPE_WEBHOOK_SECRET
         )
     } catch (error) {
-        console.error('❌ Erreur lecture body:', error)
+        console.error('Erreur lecture body:', error)
         return new Response('Erreur lecture body', { status: 400 })
     }
 
@@ -61,10 +57,9 @@ export async function POST(request: Request) {
             signature,
             process.env.STRIPE_WEBHOOK_SECRET!
         )
-        console.log('✅ Signature vérifiée, type:', event.type)
     } catch (error) {
         const err = error as Error
-        console.error('❌ Erreur de signature:', err.message)
+        console.error('Erreur de signature:', err.message)
         return new Response(`Erreur webhook: ${err.message}`, { status: 400 })
     }
 
@@ -72,7 +67,7 @@ export async function POST(request: Request) {
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object as Stripe.Checkout.Session
-                console.log('💳 Session complétée:', {
+                console.log(' Session complétée:', {
                     sessionId: session.id,
                     subscription: session.subscription,
                     customer: session.customer,
@@ -81,14 +76,14 @@ export async function POST(request: Request) {
 
                 // Vérifier que c'est bien un abonnement
                 if (session.mode !== 'subscription') {
-                    console.log('ℹ️ Session pas en mode subscription, ignoré')
+                    console.log('Session pas en mode subscription, ignoré')
                     return new Response('OK - Not a subscription', {
                         status: 200,
                     })
                 }
 
                 if (!session.subscription || !session.customer) {
-                    console.error('❌ Session sans subscription ou customer')
+                    console.error(' Session sans subscription ou customer')
                     return new Response('Session invalide', { status: 400 })
                 }
 
@@ -139,33 +134,11 @@ export async function POST(request: Request) {
                         : null,
                 }
 
-                console.log(
-                    '💾 Insertion dans app_subscriptions:',
-                    subscriptionData
-                )
-
-                // Vérifier la connexion Supabase
-                console.log(
-                    '🔌 Supabase URL:',
-                    process.env.NEXT_PUBLIC_SUPABASE_URL
-                )
-                console.log(
-                    '🔑 Service Role Key présente:',
-                    !!process.env.SUPABASE_SERVICE_ROLE_KEY
-                )
-
-                const { error: upsertError, data: insertedData } =
-                    await supabase
-                        .from('app_subscriptions')
-                        .upsert(subscriptionData, {
-                            onConflict: 'stripe_subscription_id',
-                        })
-                        .select()
-
-                console.log('📊 Résultat upsert:', {
-                    insertedData,
-                    upsertError,
-                })
+                const { error: upsertError } = await supabase
+                    .from('app_subscriptions')
+                    .upsert(subscriptionData, {
+                        onConflict: 'stripe_subscription_id',
+                    })
 
                 if (upsertError) {
                     console.error('❌ Erreur Supabase:', upsertError)
@@ -174,7 +147,6 @@ export async function POST(request: Request) {
                     })
                 }
 
-                console.log('✅ Subscription enregistrée:', insertedData)
                 break
             }
 
@@ -182,23 +154,11 @@ export async function POST(request: Request) {
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object as StripeSubscription
 
-                console.log(`📝 Subscription ${event.type}:`, {
-                    id: subscription.id,
-                    status: subscription.status,
-                    metadata: subscription.metadata,
-                })
-
                 const supabaseUserId = subscription.metadata?.supabase_user_id
                 if (!supabaseUserId) {
-                    console.error('❌ Pas de supabase_user_id dans metadata')
+                    console.error('Pas de supabase_user_id dans metadata')
                     return new Response('Metadata manquante', { status: 400 })
                 }
-
-                // Log des timestamps pour debug
-                console.log('🕒 Timestamps reçus:', {
-                    start: subscription.current_period_start,
-                    end: subscription.current_period_end,
-                })
 
                 const subscriptionData = {
                     user_id: supabaseUserId,
@@ -221,33 +181,26 @@ export async function POST(request: Request) {
                         : null,
                 }
 
-                console.log('💾 Mise à jour subscription:', subscriptionData)
-
-                const { error: upsertError, data: updatedData } = await supabase
+                const { error: upsertError } = await supabase
                     .from('app_subscriptions')
                     .upsert(subscriptionData, {
                         onConflict: 'stripe_subscription_id',
                     })
-                    .select()
 
                 if (upsertError) {
-                    console.error('❌ Erreur Supabase:', upsertError)
                     return new Response(`Erreur DB: ${upsertError.message}`, {
                         status: 500,
                     })
                 }
 
-                console.log('✅ Subscription mise à jour:', updatedData)
                 break
             }
 
             default:
-                console.log('ℹ️ Événement non géré:', event.type)
         }
 
         return new Response('OK', { status: 200 })
     } catch (err) {
-        console.error('❌ Erreur handler:', err)
         return new Response(
             `Erreur: ${err instanceof Error ? err.message : 'Inconnue'}`,
             { status: 500 }

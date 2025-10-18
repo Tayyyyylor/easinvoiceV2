@@ -29,8 +29,12 @@ export default function CheckoutButton({
     }
 
     return (
-        <button onClick={handleCheckout} disabled={loading}>
-            {loading ? 'Redirection...' : 'S’abonner'}
+        <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            {loading ? 'Redirection...' : 'Choisir ce plan'}
         </button>
     )
 }

@@ -11,9 +11,14 @@ export async function POST(req: Request) {
     try {
         const { priceId, supabaseUserId } = await req.json()
 
-        if (!priceId) {
+        const validPriceIds = [
+            process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY,
+            process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY,
+        ]
+
+        if (!priceId || !validPriceIds.includes(priceId)) {
             return NextResponse.json(
-                { error: 'Le priceId est requis' },
+                { error: 'Prix invalide' },
                 { status: 400 }
             )
         }
@@ -21,6 +26,31 @@ export async function POST(req: Request) {
         if (!supabaseUserId) {
             return NextResponse.json(
                 { error: "L'identifiant utilisateur est requis" },
+                { status: 400 }
+            )
+        }
+
+        // Vérifier si l'utilisateur a déjà un abonnement actif
+        const { data: subscriptions, error: subError } = await supabase
+            .from('app_subscriptions')
+            .select('status')
+            .eq('user_id', supabaseUserId)
+            .eq('status', 'active')
+
+        if (subError) {
+            console.error(
+                "Erreur lors de la vérification de l'abonnement:",
+                subError
+            )
+            return NextResponse.json(
+                { error: "Erreur lors de la vérification de l'abonnement" },
+                { status: 500 }
+            )
+        }
+
+        if (subscriptions && subscriptions.length > 0) {
+            return NextResponse.json(
+                { error: 'Vous avez déjà un abonnement actif' },
                 { status: 400 }
             )
         }

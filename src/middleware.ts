@@ -30,6 +30,9 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/maintenance'
         return NextResponse.redirect(url)
     }
+    if (url.pathname.startsWith('/maintenance')) {
+        return NextResponse.next()
+    }
     return await updateSession(request)
 }
 

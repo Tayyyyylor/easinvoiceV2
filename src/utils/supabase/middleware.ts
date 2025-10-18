@@ -39,26 +39,9 @@ export async function updateSession(request: NextRequest) {
 
     // IMPORTANT: DO NOT REMOVE auth.getUser()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    const pathname = request.nextUrl.pathname
-
-    const isPublicRoute =
-        pathname === '/' ||
-        pathname.startsWith('/login') ||
-        pathname.startsWith('/signup') ||
-        pathname.startsWith('/auth') ||
-        pathname.startsWith('/error') ||
-        pathname.startsWith('/maintenance')
-
-    if (!user && !isPublicRoute) {
-        // no user, potentially respond by redirecting the user to the login page
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
-    }
+    // Rafraîchir la session utilisateur
+    // Note: la redirection vers /login est gérée par les layouts protégés (app)/layout.tsx
+    await supabase.auth.getUser()
 
     // IMPORTANT: You *must* return the supabaseResponse object as it is.
     // If you're creating a new response object with NextResponse.next() make sure to:

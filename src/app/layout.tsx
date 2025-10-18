@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layouts/header/Header'
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -24,17 +25,30 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode
 }>) {
+    const cookieStore = await cookies()
+    const bypassCookie = cookieStore.get('maintenance-bypass')
+    const maintenanceBypassTokens =
+        process.env.MAINTENANCE_BYPASS_TOKENS?.split(',') || []
+    const hasValidBypassToken =
+        bypassCookie?.value &&
+        maintenanceBypassTokens.includes(bypassCookie.value)
+
     const maintenanceMode = process.env.MAINTENANCE_MODE === 'true'
+
+    const displayHeader =
+        (maintenanceMode && hasValidBypassToken) || !maintenanceMode
+
     const supabase = await createClient()
     const {
         data: { user },
     } = await supabase.auth.getUser()
+
     return (
         <html lang="en">
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                {!maintenanceMode && <Header isLoggedIn={!!user} />}
+                {displayHeader && <Header isLoggedIn={!!user} />}
                 {children}
             </body>
         </html>

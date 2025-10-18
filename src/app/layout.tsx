@@ -24,6 +24,7 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode
 }>) {
+    const maintenanceMode = process.env.MAINTENANCE_MODE === 'true'
     const supabase = await createClient()
     const {
         data: { user },
@@ -33,7 +34,7 @@ export default async function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <Header isLoggedIn={!!user} />
+                {!maintenanceMode && <Header isLoggedIn={!!user} />}
                 {children}
             </body>
         </html>

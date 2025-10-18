@@ -50,7 +50,8 @@ export async function updateSession(request: NextRequest) {
         pathname.startsWith('/login') ||
         pathname.startsWith('/signup') ||
         pathname.startsWith('/auth') ||
-        pathname.startsWith('/error')
+        pathname.startsWith('/error') ||
+        pathname.startsWith('/maintenance')
 
     if (!user && !isPublicRoute) {
         // no user, potentially respond by redirecting the user to the login page

@@ -35,10 +35,20 @@ export async function signup(formData: FormData) {
         password: formData.get('password') as string,
     }
 
+    // On essaie de se connecter d'abord pour vérifier si l'email existe
+    const { error: signInError } = await supabase.auth.signInWithPassword(data)
+
+    if (!signInError) {
+        // Si on peut se connecter, c'est que l'email existe déjà
+        return {
+            error: 'Cet email est déjà utilisé',
+        }
+    }
+
     const { error } = await supabase.auth.signUp(data)
 
     if (error) {
-        console.log(error)
+        console.log('error', error)
         redirect('/error')
     }
 

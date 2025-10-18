@@ -25,11 +25,9 @@ const formSchema = z
             .regex(/[0-9]/, {
                 message: 'Le mot de passe doit contenir au moins un chiffre',
             }),
-        confirm_password: z
-            .string()
-            .min(8, {
-                message: 'Le mot de passe doit contenir au moins 8 caractères',
-            }),
+        confirm_password: z.string().min(8, {
+            message: 'Le mot de passe doit contenir au moins 8 caractères',
+        }),
     })
     .refine((data) => data.password === data.confirm_password, {
         message: 'Les mots de passe ne correspondent pas.',

@@ -127,7 +127,6 @@ export async function createInvoice(formData: FormData) {
             subtotal_cents,
             tax_cents,
             total_cents,
-            id_counter: '1',
             payment_date: formData.get('payment_date') as string,
             payment_method: formData.get('payment_method') as string,
             interest_rate,

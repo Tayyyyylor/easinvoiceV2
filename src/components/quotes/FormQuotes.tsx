@@ -13,6 +13,13 @@ import { Select } from '../atoms/Select'
 import { ItemsLineForm } from '../atoms/ItemsLineForm'
 import { Checkbox } from '../ui/checkbox'
 import { Label } from '../ui/label'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '../ui/dialog'
 
 const quoteLineSchema = z.object({
     description: z.string().min(1),
@@ -35,9 +42,14 @@ const createQuoteSchema = z.object({
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
-export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
+export const FormQuotes = ({
+    clients: initialClients,
+}: {
+    clients: Clients[]
+}) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
     const [selectValue, setSelectValue] = useState('')
+    const [clients, setClients] = useState(initialClients)
 
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
@@ -59,6 +71,16 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
     })
 
     const tvaNonApplicable = form.watch('tva_non_applicable')
+
+    const handleClientCreated = (newClient: Clients) => {
+        // Ajouter le nouveau client à la liste
+        setClients([...clients, newClient])
+        // Sélectionner automatiquement le nouveau client
+        setSelectValue(newClient.id.toString())
+        form.setValue('client_id', newClient.id)
+        // Fermer le dialog
+        setShowNewClientForm(false)
+    }
 
     return (
         <main className="mt-10 flex flex-col gap-5 items-center justify-center">
@@ -131,11 +153,29 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                         />
                     </article>
 
-                    {showNewClientForm && (
-                        <article className="border rounded-lg p-4 bg-gray-50">
-                            <FormClients standalone={false} />
-                        </article>
-                    )}
+                    <Dialog
+                        open={showNewClientForm}
+                        onOpenChange={setShowNewClientForm}
+                    >
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto text-white">
+                            <DialogHeader>
+                                <DialogTitle>
+                                    Créer un nouveau client
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Remplissez le formulaire ci-dessous pour
+                                    créer un nouveau client. Il sera
+                                    automatiquement sélectionné pour votre
+                                    devis.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <FormClients
+                                standalone={false}
+                                onSuccess={handleClientCreated}
+                            />
+                        </DialogContent>
+                    </Dialog>
+
                     <Formfield
                         form={form}
                         name="name"
@@ -198,6 +238,7 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                         form={form}
                         remove={remove}
                         append={append}
+                        tvaNonApplicable={tvaNonApplicable}
                     />
                     <Button type="submit">Créer le devis</Button>
                 </form>

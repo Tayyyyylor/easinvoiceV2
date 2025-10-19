@@ -1,7 +1,10 @@
 'use client'
-import { createAClient } from '@/app/(app)/clients/action'
+import {
+    createAClient,
+    createAClientAndReturn,
+} from '@/app/(app)/clients/action'
 import { zodResolver } from '@hookform/resolvers/zod'
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Form } from '../ui/form'
 import { z } from 'zod'
@@ -28,9 +31,13 @@ type CreateClientValues = z.infer<typeof createClientSchema>
 
 export const FormClients = ({
     standalone = true,
+    onSuccess,
 }: {
     standalone?: boolean
+    onSuccess?: (client: Clients) => void
 }) => {
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const form = useForm<CreateClientValues>({
         resolver: zodResolver(createClientSchema),
         defaultValues: {
@@ -174,19 +181,45 @@ export const FormClients = ({
                     />
                 </section>
             </article>
-
-            <Button type="submit">Créer le client</Button>
         </main>
     )
+
+    const handleSubmitModal = async (formData: FormData) => {
+        setIsSubmitting(true)
+        setError(null)
+
+        const result = await createAClientAndReturn(formData)
+        setIsSubmitting(false)
+
+        if (result.success && result.data) {
+            form.reset()
+            onSuccess?.(result.data)
+        } else {
+            setError(result.error || 'Une erreur est survenue')
+        }
+    }
 
     return (
         <Form {...form}>
             {standalone ? (
                 <form className="space-y-8" action={createAClient}>
                     {formContent}
+                    <Button type="submit">Créer le client</Button>
                 </form>
             ) : (
-                <section className="space-y-8">{formContent}</section>
+                <form className="space-y-8" action={handleSubmitModal}>
+                    {error && (
+                        <div className="text-red-500 text-sm bg-red-50 p-3 rounded">
+                            {error}
+                        </div>
+                    )}
+                    {formContent}
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting
+                            ? 'Création en cours...'
+                            : 'Créer le client'}
+                    </Button>
+                </form>
             )}
         </Form>
     )

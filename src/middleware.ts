@@ -2,10 +2,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    const isProduction = process.env.NODE_ENV === 'production' // or true for testing
+    // const isProduction = process.env.NODE_ENV === 'production' // or true for testing
+    const isProduction = true // Temporaire pour tester le mode maintenance en dev
     const maintenanceMode = process.env.MAINTENANCE_MODE === 'true'
     const maintenanceBypassTokens =
-        process.env.MAINTENANCE_BYPASS_TOKENS?.split(',') || []
+        process.env.MAINTENANCE_BYPASS_TOKENS?.split(',').map((t) =>
+            t.trim()
+        ) || []
 
     const url = request.nextUrl.clone()
 

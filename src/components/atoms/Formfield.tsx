@@ -17,6 +17,7 @@ type FormfieldProps = {
     label: string
     placeholder: string
     type?: string
+    disabled?: boolean
 }
 
 export const Formfield = ({
@@ -25,6 +26,7 @@ export const Formfield = ({
     label,
     placeholder,
     type = 'text',
+    disabled = false,
 }: FormfieldProps) => {
     const [showPassword, setShowPassword] = useState(false)
 
@@ -52,6 +54,7 @@ export const Formfield = ({
                                         : type
                                 }
                                 className="pr-10"
+                                disabled={disabled}
                             />
                             {type === 'password' && (
                                 <Button

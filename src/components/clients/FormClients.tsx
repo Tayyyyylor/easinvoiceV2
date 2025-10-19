@@ -63,8 +63,10 @@ export const FormClients = ({
     const clientType = form.watch('type')
 
     const formContent = (
-        <>
-            <h2 className="text-2xl font-bold">Créer un client</h2>
+        <main className="flex flex-col gap-5 items-center justify-center">
+            <h2 className="text-2xl font-bold text-center mb-20">
+                Créer un client
+            </h2>
             <div>
                 <label htmlFor="type">Type de client</label>
                 <select
@@ -182,7 +184,7 @@ export const FormClients = ({
             </div>
 
             <Button type="submit">Créer le client</Button>
-        </>
+        </main>
     )
 
     return (
@@ -192,7 +194,7 @@ export const FormClients = ({
                     {formContent}
                 </form>
             ) : (
-                <main className="space-y-8">{formContent}</main>
+                <div className="space-y-8">{formContent}</div>
             )}
         </Form>
     )

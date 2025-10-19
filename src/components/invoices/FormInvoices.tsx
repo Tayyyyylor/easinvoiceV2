@@ -1,22 +1,15 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { Form } from '../ui/form'
 import { z } from 'zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '../ui/select'
 import { Formfield } from '../atoms/Formfield'
 import { Button } from '../ui/button'
 import { createInvoice } from '@/app/(app)/invoices/action'
 import { Checkbox } from '../ui/checkbox'
 import { Label } from '../ui/label'
+import { FormClients } from '../clients/FormClients'
 
 const invoiceLineSchema = z.object({
     description: z.string().min(1),
@@ -37,11 +30,14 @@ const createInvoiceSchema = z.object({
     payment_date: z.string().optional(),
     payment_method: z.string().optional(),
     interest_rate: z.number().nonnegative().optional(),
+    tva_non_applicable: z.boolean().optional(),
 })
 
 type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
 
 export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
+    const [showNewClientForm, setShowNewClientForm] = useState(false)
+    const [selectValue, setSelectValue] = useState('')
     const form = useForm<CreateInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {
@@ -54,6 +50,7 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
             payment_date: '30 jours fin de mois',
             payment_method: 'Virement bancaire',
             interest_rate: 0,
+            tva_non_applicable: false,
         },
     })
 
@@ -61,13 +58,16 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
         control: form.control,
         name: 'lines',
     })
+
+    const tvaNonApplicable = form.watch('tva_non_applicable')
+
     return (
-        <main className="mt-10">
+        <main className="mt-10 flex flex-col gap-5 items-center justify-center">
             <h1>Créer une facture</h1>
 
             <Form {...form}>
                 <form
-                    className="space-y-8"
+                    className="space-y-8 w-full max-w-4xl"
                     action={async (formData) => {
                         // Empêcher la soumission si aucun client n'est sélectionné
                         const values = form.getValues()
@@ -85,38 +85,43 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                     }}
                 >
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Clients</label>
-                        <Select
-                            value={form.watch('client_id')?.toString()}
-                            onValueChange={(value) => {
-                                form.setValue(
-                                    'client_id',
-                                    value === 'new-client'
-                                        ? undefined
-                                        : Number(value)
-                                )
+                        <label
+                            htmlFor="client_id"
+                            className="text-sm font-medium"
+                        >
+                            Clients
+                        </label>
+                        <select
+                            name="client_id"
+                            id="client_id"
+                            className="w-full p-2 border rounded"
+                            value={selectValue}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setSelectValue(value)
+                                if (value === 'new-client') {
+                                    setShowNewClientForm(true)
+                                    form.setValue('client_id', undefined)
+                                } else if (value === '') {
+                                    setShowNewClientForm(false)
+                                    form.setValue('client_id', undefined)
+                                } else {
+                                    setShowNewClientForm(false)
+                                    form.setValue('client_id', Number(value))
+                                }
                             }}
                         >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Sélectionner un client" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectItem value="new-client">
-                                        Nouveau client
-                                    </SelectItem>
-                                    {clients.map((client) => (
-                                        <SelectItem
-                                            value={client.id.toString()}
-                                            key={client.id}
-                                        >
-                                            {client.firstname ||
-                                                client.company_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
+                            <option value="">Sélectionner un client</option>
+                            <option value="new-client">Nouveau client</option>
+                            {clients.map((client) => (
+                                <option
+                                    value={client.id.toString()}
+                                    key={client.id}
+                                >
+                                    {client.firstname || client.company_name}
+                                </option>
+                            ))}
+                        </select>
                         {form.formState.errors.client_id && (
                             <p className="text-sm text-red-500">
                                 {form.formState.errors.client_id.message}
@@ -128,6 +133,11 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             value={(form.watch('client_id') ?? '').toString()}
                         />
                     </div>
+                    {showNewClientForm && (
+                        <div className="border rounded-lg p-4 bg-gray-50">
+                            <FormClients standalone={false} />
+                        </div>
+                    )}
                     <Formfield
                         form={form}
                         name="name"
@@ -154,11 +164,34 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             placeholder="Notes (optionnel)"
                         />
                         <div className="flex items-center gap-2">
-                            <Checkbox id="TVA" />
+                            <Checkbox
+                                id="TVA"
+                                checked={tvaNonApplicable}
+                                onCheckedChange={(checked) => {
+                                    form.setValue(
+                                        'tva_non_applicable',
+                                        checked as boolean
+                                    )
+                                    // Si la checkbox est cochée, mettre toutes les TVA à 0
+                                    if (checked) {
+                                        fields.forEach((_, index) => {
+                                            form.setValue(
+                                                `lines.${index}.tax_rate`,
+                                                0
+                                            )
+                                        })
+                                    }
+                                }}
+                            />
                             <Label htmlFor="TVA">TVA non applicable</Label>
+                            <input
+                                type="hidden"
+                                name="tva_non_applicable"
+                                value={tvaNonApplicable ? 'true' : 'false'}
+                            />
                         </div>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-3 ">
                         <div className="text-sm font-medium">Lignes</div>
                         {fields.map((f, i) => (
                             <div
@@ -174,14 +207,28 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                                     />
                                 </div>
                                 <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.type`}
-                                        label="Type"
-                                        placeholder="service/produit"
-                                    />
+                                    <label
+                                        htmlFor={`lines.${i}.type`}
+                                        className="text-sm font-medium"
+                                    >
+                                        Type
+                                    </label>
+                                    <select
+                                        id={`lines.${i}.type`}
+                                        className="w-full p-2 border rounded"
+                                        value={form.watch(`lines.${i}.type`)}
+                                        onChange={(e) => {
+                                            form.setValue(
+                                                `lines.${i}.type`,
+                                                e.target.value
+                                            )
+                                        }}
+                                    >
+                                        <option value="service">Service</option>
+                                        <option value="produit">Produit</option>
+                                    </select>
                                 </div>
-                                <div className="col-span-2">
+                                <div className="col-span-1">
                                     <Formfield
                                         form={form}
                                         name={`lines.${i}.quantity`}
@@ -193,16 +240,17 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                                     <Formfield
                                         form={form}
                                         name={`lines.${i}.unit_price`}
-                                        label="PU (€)"
+                                        label="Prix unitaire (€)"
                                         placeholder="0"
                                     />
                                 </div>
-                                <div className="col-span-1">
+                                <div className="col-span-2">
                                     <Formfield
                                         form={form}
                                         name={`lines.${i}.tax_rate`}
                                         label="TVA %"
                                         placeholder="20"
+                                        disabled={tvaNonApplicable}
                                     />
                                 </div>
                                 <div className="col-span-1">
@@ -225,7 +273,7 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                                     type: 'service',
                                     quantity: 1,
                                     unit_price: 0,
-                                    tax_rate: 20,
+                                    tax_rate: tvaNonApplicable ? 0 : 20,
                                 })
                             }
                         >

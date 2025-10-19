@@ -48,20 +48,6 @@ const FormAccount = () => {
         },
     })
 
-    const formFields = [
-        {
-            name: 'capital',
-            label: 'Capital social',
-            placeholder: 'Capital social',
-            type: 'number',
-        },
-        {
-            name: 'siret',
-            label: 'SIRET',
-            placeholder: 'SIRET',
-        },
-    ]
-
     const handleImageUpload = async (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
@@ -103,10 +89,10 @@ const FormAccount = () => {
 
         // Vérifier que le logo est bien uploadé
         const logoUrl = form.getValues('logo_url')
-        if (!logoUrl) {
-            form.setError('logo_url', { message: 'Veuillez uploader un logo' })
-            return
-        }
+        // if (!logoUrl) {
+        //     form.setError('logo_url', { message: 'Veuillez uploader un logo' })
+        //     return
+        // }
 
         // Récupérer le formData du formulaire
         const formData = new FormData(e.currentTarget)

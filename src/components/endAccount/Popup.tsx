@@ -23,7 +23,7 @@ export const Popup = ({ onClose }: PopupProps) => {
     return (
         <div className="fixed inset-0 z-1000 flex items-center justify-center ">
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <Card className="relative z-10 w-full max-w-sm bg-white">
+            <Card className="relative z-10 w-full max-w-sm bg-white text-black">
                 <CardHeader>
                     <CardTitle>Finaliser le profil</CardTitle>
                     <CardAction>

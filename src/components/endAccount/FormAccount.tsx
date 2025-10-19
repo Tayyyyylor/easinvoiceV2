@@ -50,53 +50,6 @@ const FormAccount = () => {
 
     const formFields = [
         {
-            name: 'firstname',
-            label: 'Prénom',
-            placeholder: 'Prénom',
-        },
-        {
-            name: 'lastname',
-            label: 'Nom',
-            placeholder: 'Nom',
-        },
-
-        {
-            name: 'company_name',
-            label: 'Nom de la société',
-            placeholder: 'Nom de la société',
-        },
-
-        {
-            name: 'address',
-            label: 'Adresse',
-            placeholder: 'Adresse',
-        },
-
-        {
-            name: 'additional_address',
-            label: "Complément d'adresse",
-            placeholder: "Complément d'adresse",
-        },
-
-        {
-            name: 'city',
-            label: 'Ville',
-            placeholder: 'Ville',
-        },
-
-        {
-            name: 'zipcode',
-            label: 'Code postal',
-            placeholder: 'Code postal',
-        },
-
-        {
-            name: 'country',
-            label: 'Pays',
-            placeholder: 'Pays',
-        },
-
-        {
             name: 'capital',
             label: 'Capital social',
             placeholder: 'Capital social',
@@ -166,19 +119,22 @@ const FormAccount = () => {
     }
 
     return (
-        <>
+        <main className="mt-10 flex flex-col gap-5 items-center justify-center">
+            <h2 className="text-2xl font-bold text-center mb-20">
+                Finaliser le profil
+            </h2>
             <Form {...form}>
                 <form
                     action={finalizeAccount}
                     onSubmit={handleSubmit}
                     className="space-y-8"
                 >
-                    <div className="space-y-4">
+                    <article className="space-y-4">
                         <label className="block text-sm font-medium text-gray-700">
                             Logo de l&apos;entreprise
                         </label>
                         {previewUrl && (
-                            <div>
+                            <section>
                                 <div className="mt-2">
                                     <Image
                                         src={previewUrl}
@@ -204,11 +160,11 @@ const FormAccount = () => {
                                 >
                                     Changer le logo
                                 </Button>
-                            </div>
+                            </section>
                         )}
-                    </div>
+                    </article>
                     {!previewUrl && (
-                        <div>
+                        <section>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -243,18 +199,86 @@ const FormAccount = () => {
                             <p className="text-xs text-gray-500">
                                 Formats acceptés : PNG, JPG, WEBP (max 2MB)
                             </p>
-                        </div>
+                        </section>
                     )}
-
-                    {formFields.map((field) => (
-                        <Formfield key={field.name} form={form} {...field} />
-                    ))}
+                    <article className="space-y-4">
+                        <section className="flex gap-2">
+                            <Formfield
+                                form={form}
+                                name="firstname"
+                                label="Prénom"
+                                placeholder="Prénom"
+                            />
+                            <Formfield
+                                form={form}
+                                name="lastname"
+                                label="Nom"
+                                placeholder="Nom"
+                            />
+                        </section>
+                        <Formfield
+                            form={form}
+                            name="company_name"
+                            label="Nom de la société"
+                            placeholder="Nom de la société"
+                        />
+                    </article>
+                    <article className="space-y-4">
+                        <section className="flex gap-2">
+                            <Formfield
+                                form={form}
+                                name="address"
+                                label="Adresse"
+                                placeholder="Adresse"
+                            />
+                            <Formfield
+                                form={form}
+                                name="additional_address"
+                                label="Complément d'adresse"
+                                placeholder="Complément d'adresse"
+                            />
+                        </section>
+                        <section className="flex gap-2">
+                            <Formfield
+                                form={form}
+                                name="city"
+                                label="Ville"
+                                placeholder="Ville"
+                            />
+                            <Formfield
+                                form={form}
+                                name="zipcode"
+                                label="Code postal"
+                                placeholder="Code postal"
+                            />
+                            <Formfield
+                                form={form}
+                                name="country"
+                                label="Pays"
+                                placeholder="Pays"
+                            />
+                        </section>
+                    </article>
+                    <article className="flex gap-2 items-center">
+                        <Formfield
+                            form={form}
+                            name="capital"
+                            label="Capital social"
+                            placeholder="Capital social"
+                        />
+                        <Formfield
+                            form={form}
+                            name="siret"
+                            label="SIRET"
+                            placeholder="SIRET"
+                        />
+                    </article>
                     <Button type="submit" disabled={isUploading}>
                         {isUploading ? 'Upload en cours...' : 'Confirmer'}
                     </Button>
                 </form>
             </Form>
-        </>
+        </main>
     )
 }
 

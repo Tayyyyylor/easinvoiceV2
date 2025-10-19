@@ -1,7 +1,6 @@
 'use client'
 import { login } from '@/app/(auth)/login/actions'
-import React from 'react'
-import { useFormState } from 'react-dom'
+import React, { useActionState } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '../ui/form'
@@ -18,7 +17,7 @@ const formSchema = z.object({
 })
 type LoginValues = z.infer<typeof formSchema>
 const Login = () => {
-    const [state, formAction] = useFormState(login, null)
+    const [state, formAction] = useActionState(login, null)
 
     const form = useForm<LoginValues>({
         mode: 'onChange', // Valider à chaque changement

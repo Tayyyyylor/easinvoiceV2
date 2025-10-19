@@ -1,7 +1,6 @@
 'use client'
 import { signup } from '@/app/(auth)/login/actions'
-import React from 'react'
-import { useFormState } from 'react-dom'
+import React, { useActionState } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '../ui/form'
@@ -38,7 +37,7 @@ const formSchema = z
 type SignupValues = z.infer<typeof formSchema>
 
 const Signup = () => {
-    const [state, formAction] = useFormState(signup, null)
+    const [state, formAction] = useActionState(signup, null)
 
     const form = useForm<SignupValues>({
         resolver: zodResolver(formSchema),

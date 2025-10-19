@@ -6,6 +6,7 @@ import React from 'react'
 
 export const Invoices = ({ invoices }: { invoices: Invoices[] }) => {
     const router = useRouter()
+    console.log('invoices', invoices)
     return (
         <DetailsTemplate title="Facture" data={invoices} link="invoices">
             <Button onClick={() => router.push('/invoices/create')}>

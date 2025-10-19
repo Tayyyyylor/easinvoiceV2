@@ -21,7 +21,6 @@ const createClientSchema = z.object({
     country: z.string().min(1).optional(),
     phone: z.string().min(1).optional(),
     siret: z.string().min(1).optional(),
-    tva: z.string().optional(),
     naf_code: z.string().min(1).optional(),
 })
 type CreateClientValues = z.infer<typeof createClientSchema>
@@ -46,89 +45,142 @@ export const FormClients = ({
             country: '',
             phone: '',
             siret: '',
-            tva: '0',
             naf_code: '',
         },
     })
-    const formFields = [
+
+    const selectType = [
         {
-            name: 'type',
-            label: 'Type',
-            placeholder: 'Type',
+            value: 'individual',
+            label: 'Individuel',
         },
         {
-            name: 'firstname',
-            label: 'Prénom',
-            placeholder: 'Prénom',
-        },
-        {
-            name: 'lastname',
-            label: 'Nom',
-            placeholder: 'Nom',
-        },
-        {
-            name: 'company_name',
-            label: 'Nom de la société',
-            placeholder: 'Nom de la société',
-        },
-        {
-            name: 'email',
-            label: 'Email',
-            placeholder: 'Email',
-        },
-        {
-            name: 'phone',
-            label: 'Téléphone',
-            placeholder: 'Téléphone',
-        },
-        {
-            name: 'siret',
-            label: 'Siret',
-            placeholder: 'Siret',
-        },
-        {
-            name: 'tva',
-            label: 'TVA',
-            placeholder: 'TVA',
-        },
-        {
-            name: 'naf_code',
-            label: 'Code NAF',
-            placeholder: 'Code NAF',
-        },
-        {
-            name: 'address',
-            label: 'Adresse',
-            placeholder: 'Adresse',
-        },
-        {
-            name: 'additional_address',
-            label: "Complément d'adresse",
-            placeholder: "Complément d'adresse",
-        },
-        {
-            name: 'city',
-            label: 'Ville',
-            placeholder: 'Ville',
-        },
-        {
-            name: 'zipcode',
-            label: 'Code postal',
-            placeholder: 'Code postal',
-        },
-        {
-            name: 'country',
-            label: 'Pays',
-            placeholder: 'Pays',
+            value: 'company',
+            label: 'Société',
         },
     ]
 
+    const clientType = form.watch('type')
+
     const formContent = (
         <>
-            <h2>Créer un client</h2>
-            {formFields.map((field) => (
-                <Formfield key={field.name} form={form} {...field} />
-            ))}
+            <h2 className="text-2xl font-bold">Créer un client</h2>
+            <div>
+                <label htmlFor="type">Type de client</label>
+                <select
+                    name="type"
+                    id="type"
+                    value={clientType}
+                    onChange={(e) => {
+                        form.setValue(
+                            'type',
+                            e.target.value as 'company' | 'individual'
+                        )
+                    }}
+                >
+                    {selectType.map((type, index) => (
+                        <option value={type.value} key={index}>
+                            {type.label}
+                        </option>
+                    ))}
+                </select>
+                <input type="hidden" name="type" value={clientType} />
+            </div>
+            <div className="flex flex-col gap-5">
+                <div className="flex gap-5">
+                    <Formfield
+                        form={form}
+                        name="firstname"
+                        label="Prénom"
+                        placeholder="Prénom"
+                    />
+                    <Formfield
+                        form={form}
+                        name="lastname"
+                        label="Nom"
+                        placeholder="Nom"
+                    />
+                </div>
+                <div className="flex gap-5">
+                    <Formfield
+                        form={form}
+                        name="email"
+                        label="Email"
+                        placeholder="Email"
+                    />
+                    <Formfield
+                        form={form}
+                        name="phone"
+                        label="Téléphone"
+                        placeholder="Téléphone"
+                    />
+                </div>
+            </div>
+            {clientType === 'company' && (
+                <div className="flex flex-col gap-5">
+                    <div className="flex gap-5">
+                        <Formfield
+                            form={form}
+                            name="company_name"
+                            label="Nom de la société"
+                            placeholder="Nom de la société"
+                        />
+                    </div>
+                    <div className="flex gap-5">
+                        <Formfield
+                            form={form}
+                            name="siret"
+                            label="Siret"
+                            placeholder="Siret"
+                        />
+                        <Formfield
+                            form={form}
+                            name="naf_code"
+                            label="Code NAF"
+                            placeholder="Code NAF"
+                        />
+                    </div>
+                </div>
+            )}
+            <div className="flex flex-col gap-5">
+                <div className="flex gap-5">
+                    <Formfield
+                        form={form}
+                        name="address"
+                        label="Adresse"
+                        placeholder="Adresse"
+                    />
+                    <Formfield
+                        form={form}
+                        name="additional_address"
+                        label="Complément d'adresse"
+                        placeholder="Complément d'adresse"
+                    />
+                </div>
+                <div className="flex gap-5">
+                    <Formfield
+                        form={form}
+                        name="city"
+                        label="Ville"
+                        placeholder="Ville"
+                    />
+                    <Formfield
+                        form={form}
+                        name="zipcode"
+                        label="Code postal"
+                        placeholder="Code postal"
+                    />
+                </div>
+                <div className="flex gap-5">
+                    <Formfield
+                        form={form}
+                        name="country"
+                        label="Pays"
+                        placeholder="Pays"
+                    />
+                </div>
+            </div>
+
             <Button type="submit">Créer le client</Button>
         </>
     )
@@ -140,7 +192,7 @@ export const FormClients = ({
                     {formContent}
                 </form>
             ) : (
-                <div className="space-y-8">{formContent}</div>
+                <main className="space-y-8">{formContent}</main>
             )}
         </Form>
     )

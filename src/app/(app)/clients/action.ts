@@ -7,12 +7,6 @@ import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
 export async function createAClient(formData: FormData) {
     const { user, supabase } = await getAuthenticatedUser()
 
-    const tvaEntry = formData.get('tva')
-    const tva =
-        typeof tvaEntry === 'string' && tvaEntry.trim() !== ''
-            ? Number(tvaEntry.replace(',', '.'))
-            : null
-
     // type-casting here for convenience
     // in practice, you should validate your inputs
     const payload = {
@@ -29,7 +23,6 @@ export async function createAClient(formData: FormData) {
         country: formData.get('country') as string,
         phone: formData.get('phone') as string,
         siret: formData.get('siret') as string,
-        tva,
         naf_code: formData.get('naf_code') as string,
     }
 

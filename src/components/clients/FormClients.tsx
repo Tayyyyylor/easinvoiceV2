@@ -7,6 +7,7 @@ import { Form } from '../ui/form'
 import { z } from 'zod'
 import { Formfield } from '../atoms/Formfield'
 import { Button } from '../ui/button'
+import { Select } from '../atoms/Select'
 
 const createClientSchema = z.object({
     type: z.enum(['company', 'individual']),
@@ -63,31 +64,24 @@ export const FormClients = ({
     const clientType = form.watch('type')
 
     const formContent = (
-        <>
-            <h2 className="text-2xl font-bold">Créer un client</h2>
-            <div>
-                <label htmlFor="type">Type de client</label>
-                <select
-                    name="type"
-                    id="type"
-                    value={clientType}
-                    onChange={(e) => {
-                        form.setValue(
-                            'type',
-                            e.target.value as 'company' | 'individual'
-                        )
-                    }}
-                >
-                    {selectType.map((type, index) => (
-                        <option value={type.value} key={index}>
-                            {type.label}
-                        </option>
-                    ))}
-                </select>
-                <input type="hidden" name="type" value={clientType} />
-            </div>
-            <div className="flex flex-col gap-5">
-                <div className="flex gap-5">
+        <main className="flex flex-col gap-5 items-center justify-center">
+            <h2 className="text-2xl font-bold text-center mb-20">
+                Créer un client
+            </h2>
+            <Select
+                label="Type de client"
+                name="type"
+                onChange={(e) => {
+                    form.setValue(
+                        'type',
+                        e.target.value as 'company' | 'individual'
+                    )
+                }}
+                value={clientType}
+                options={selectType}
+            />
+            <article className="flex flex-col gap-5">
+                <section className="flex gap-5">
                     <Formfield
                         form={form}
                         name="firstname"
@@ -100,8 +94,8 @@ export const FormClients = ({
                         label="Nom"
                         placeholder="Nom"
                     />
-                </div>
-                <div className="flex gap-5">
+                </section>
+                <section className="flex gap-5">
                     <Formfield
                         form={form}
                         name="email"
@@ -114,19 +108,19 @@ export const FormClients = ({
                         label="Téléphone"
                         placeholder="Téléphone"
                     />
-                </div>
-            </div>
+                </section>
+            </article>
             {clientType === 'company' && (
-                <div className="flex flex-col gap-5">
-                    <div className="flex gap-5">
+                <article className="flex flex-col gap-5">
+                    <section className="flex gap-5">
                         <Formfield
                             form={form}
                             name="company_name"
                             label="Nom de la société"
                             placeholder="Nom de la société"
                         />
-                    </div>
-                    <div className="flex gap-5">
+                    </section>
+                    <section className="flex gap-5">
                         <Formfield
                             form={form}
                             name="siret"
@@ -139,11 +133,11 @@ export const FormClients = ({
                             label="Code NAF"
                             placeholder="Code NAF"
                         />
-                    </div>
-                </div>
+                    </section>
+                </article>
             )}
-            <div className="flex flex-col gap-5">
-                <div className="flex gap-5">
+            <article className="flex flex-col gap-5">
+                <section className="flex gap-5">
                     <Formfield
                         form={form}
                         name="address"
@@ -156,8 +150,8 @@ export const FormClients = ({
                         label="Complément d'adresse"
                         placeholder="Complément d'adresse"
                     />
-                </div>
-                <div className="flex gap-5">
+                </section>
+                <section className="flex gap-5">
                     <Formfield
                         form={form}
                         name="city"
@@ -170,19 +164,19 @@ export const FormClients = ({
                         label="Code postal"
                         placeholder="Code postal"
                     />
-                </div>
-                <div className="flex gap-5">
+                </section>
+                <section className="flex gap-5">
                     <Formfield
                         form={form}
                         name="country"
                         label="Pays"
                         placeholder="Pays"
                     />
-                </div>
-            </div>
+                </section>
+            </article>
 
             <Button type="submit">Créer le client</Button>
-        </>
+        </main>
     )
 
     return (
@@ -192,7 +186,7 @@ export const FormClients = ({
                     {formContent}
                 </form>
             ) : (
-                <main className="space-y-8">{formContent}</main>
+                <section className="space-y-8">{formContent}</section>
             )}
         </Form>
     )

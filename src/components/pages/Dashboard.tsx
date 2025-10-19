@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/useAuth'
 import { DashboardCard } from '../dashboard/DashboardCard'
 import { useSubscription } from '@/hooks/useSubscription'
-import PricingOptions from '../subscription/PricingOptions'
+import { Button } from '../ui/button'
 
 interface DashboardProps {
     clients: Clients[]
@@ -21,7 +21,7 @@ export default function Dashboard({
 }: DashboardProps) {
     const [showPopup, setShowPopup] = useState(true)
     const { isSubscribed } = useSubscription()
-    const { profile, user } = useAuth()
+    const { profile } = useAuth()
     const router = useRouter()
     const isProfileCompleted = profile?.firstname && profile?.lastname
     const handleClick = () => {
@@ -33,6 +33,11 @@ export default function Dashboard({
     return (
         <main className="flex flex-col items-center justify-center h-screen p-5">
             {!isProfileCompleted && <Headband />}
+            {!isSubscribed && (
+                <Button onClick={() => router.push('/billing')}>
+                    Passez Prenium !
+                </Button>
+            )}
             <div className="relative flex flex-row items-center justify-center gap-8 w-full">
                 <DashboardCard
                     title="Mes devis"
@@ -49,7 +54,6 @@ export default function Dashboard({
                     }
                     data={quotes}
                 />
-                {!isSubscribed && <PricingOptions userId={user?.id} />}
                 <DashboardCard
                     title="Mes factures"
                     buttonLabel="Créer une facture"

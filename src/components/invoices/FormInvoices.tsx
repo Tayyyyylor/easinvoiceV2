@@ -1,22 +1,17 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { Form } from '../ui/form'
 import { z } from 'zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '../ui/select'
 import { Formfield } from '../atoms/Formfield'
 import { Button } from '../ui/button'
 import { createInvoice } from '@/app/(app)/invoices/action'
 import { Checkbox } from '../ui/checkbox'
 import { Label } from '../ui/label'
+import { FormClients } from '../clients/FormClients'
+import { Select } from '../atoms/Select'
+import { ItemsLineForm } from '../atoms/ItemsLineForm'
 
 const invoiceLineSchema = z.object({
     description: z.string().min(1),
@@ -37,11 +32,14 @@ const createInvoiceSchema = z.object({
     payment_date: z.string().optional(),
     payment_method: z.string().optional(),
     interest_rate: z.number().nonnegative().optional(),
+    tva_non_applicable: z.boolean().optional(),
 })
 
 type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
 
 export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
+    const [showNewClientForm, setShowNewClientForm] = useState(false)
+    const [selectValue, setSelectValue] = useState('')
     const form = useForm<CreateInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {
@@ -54,6 +52,7 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
             payment_date: '30 jours fin de mois',
             payment_method: 'Virement bancaire',
             interest_rate: 0,
+            tva_non_applicable: false,
         },
     })
 
@@ -61,13 +60,17 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
         control: form.control,
         name: 'lines',
     })
-    return (
-        <main className="mt-10">
-            <h1>Créer une facture</h1>
 
+    const tvaNonApplicable = form.watch('tva_non_applicable')
+
+    return (
+        <main className="mt-10 flex flex-col gap-5 items-center justify-center">
+            <h2 className="text-2xl font-bold text-center mb-20">
+                Créer une facture
+            </h2>
             <Form {...form}>
                 <form
-                    className="space-y-8"
+                    className="space-y-8 w-full max-w-4xl"
                     action={async (formData) => {
                         // Empêcher la soumission si aucun client n'est sélectionné
                         const values = form.getValues()
@@ -84,39 +87,41 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                         await createInvoice(formData)
                     }}
                 >
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Clients</label>
+                    <article className="space-y-2">
                         <Select
-                            value={form.watch('client_id')?.toString()}
-                            onValueChange={(value) => {
-                                form.setValue(
-                                    'client_id',
-                                    value === 'new-client'
-                                        ? undefined
-                                        : Number(value)
-                                )
+                            label="Clients"
+                            name="client_id"
+                            value={selectValue}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setSelectValue(value)
+                                if (value === 'new-client') {
+                                    setShowNewClientForm(true)
+                                    form.setValue('client_id', undefined)
+                                } else if (value === '') {
+                                    setShowNewClientForm(false)
+                                    form.setValue('client_id', undefined)
+                                } else {
+                                    setShowNewClientForm(false)
+                                    form.setValue('client_id', Number(value))
+                                }
                             }}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Sélectionner un client" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectItem value="new-client">
-                                        Nouveau client
-                                    </SelectItem>
-                                    {clients.map((client) => (
-                                        <SelectItem
-                                            value={client.id.toString()}
-                                            key={client.id}
-                                        >
-                                            {client.firstname ||
-                                                client.company_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
+                            options={[
+                                { value: '', label: 'Sélectionner un client' },
+                                {
+                                    id: 'new-client',
+                                    value: 'new-client',
+                                    label: 'Nouveau client',
+                                },
+                                ...clients.map((client) => ({
+                                    id: client.id.toString(),
+                                    value: client.id.toString(),
+                                    label:
+                                        client.firstname || client.company_name,
+                                })),
+                            ]}
+                        />
+
                         {form.formState.errors.client_id && (
                             <p className="text-sm text-red-500">
                                 {form.formState.errors.client_id.message}
@@ -127,7 +132,12 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             name="client_id"
                             value={(form.watch('client_id') ?? '').toString()}
                         />
-                    </div>
+                    </article>
+                    {showNewClientForm && (
+                        <article className="border rounded-lg p-4 bg-gray-50">
+                            <FormClients standalone={false} />
+                        </article>
+                    )}
                     <Formfield
                         form={form}
                         name="name"
@@ -140,7 +150,7 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                         label="Objet de la facture"
                         placeholder="Ex: Site vitrine"
                     />
-                    <div className="grid grid-cols-3 gap-4">
+                    <article className="grid grid-cols-3 gap-4">
                         <Formfield
                             form={form}
                             name="currency"
@@ -153,86 +163,41 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             label="Notes"
                             placeholder="Notes (optionnel)"
                         />
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="TVA" />
+                        <section className="flex items-center gap-2">
+                            <Checkbox
+                                id="TVA"
+                                checked={tvaNonApplicable}
+                                onCheckedChange={(checked) => {
+                                    form.setValue(
+                                        'tva_non_applicable',
+                                        checked as boolean
+                                    )
+
+                                    fields.forEach((_, index) => {
+                                        form.setValue(
+                                            `lines.${index}.tax_rate`,
+                                            checked ? 0 : 20
+                                        )
+                                    })
+                                }}
+                            />
                             <Label htmlFor="TVA">TVA non applicable</Label>
-                        </div>
-                    </div>
-                    <div className="space-y-3">
-                        <div className="text-sm font-medium">Lignes</div>
-                        {fields.map((f, i) => (
-                            <div
-                                key={f.id}
-                                className="grid grid-cols-12 gap-2 items-end border rounded p-3"
-                            >
-                                <div className="col-span-4">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.description`}
-                                        label="Description"
-                                        placeholder="Ex: Intégration"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.type`}
-                                        label="Type"
-                                        placeholder="service/produit"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.quantity`}
-                                        label="Qté"
-                                        placeholder="1"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.unit_price`}
-                                        label="PU (€)"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.tax_rate`}
-                                        label="TVA %"
-                                        placeholder="20"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => remove(i)}
-                                    >
-                                        −
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() =>
-                                append({
-                                    description: '',
-                                    type: 'service',
-                                    quantity: 1,
-                                    unit_price: 0,
-                                    tax_rate: 20,
-                                })
-                            }
-                        >
-                            + Ajouter une ligne
-                        </Button>
-                    </div>
-                    <div>
+                            <input
+                                type="hidden"
+                                name="tva_non_applicable"
+                                value={tvaNonApplicable ? 'true' : 'false'}
+                            />
+                        </section>
+                    </article>
+                    <ItemsLineForm
+                        fields={fields}
+                        form={form}
+                        remove={remove}
+                        append={append}
+                        tvaNonApplicable={tvaNonApplicable}
+                    />
+
+                    <article>
                         <h3>Règlement</h3>
                         <Formfield
                             form={form}
@@ -252,7 +217,7 @@ export const FormInvoices = ({ clients }: { clients: Clients[] }) => {
                             label="Intérêts de retard"
                             placeholder="Intérêts de retard"
                         />
-                    </div>
+                    </article>
                     <Button type="submit">Créer la facture</Button>
                 </form>
             </Form>

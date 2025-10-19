@@ -7,16 +7,12 @@ import { Form } from '../ui/form'
 import { Button } from '../ui/button'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createQuote } from '@/app/(app)/quotes/action'
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
 import { Formfield } from '../atoms/Formfield'
 import { FormClients } from '../clients/FormClients'
+import { Select } from '../atoms/Select'
+import { ItemsLineForm } from '../atoms/ItemsLineForm'
+import { Checkbox } from '../ui/checkbox'
+import { Label } from '../ui/label'
 
 const quoteLineSchema = z.object({
     description: z.string().min(1),
@@ -35,11 +31,13 @@ const createQuoteSchema = z.object({
     lines: z.array(quoteLineSchema).min(1),
     client_id: z.number().positive().optional(),
     name: z.string().min(1),
+    tva_non_applicable: z.boolean().optional(),
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
 export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
+    const [selectValue, setSelectValue] = useState('')
 
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
@@ -51,6 +49,7 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
             name: '',
             description: '',
             client_id: undefined,
+            tva_non_applicable: false,
         },
     })
 
@@ -59,56 +58,67 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
         name: 'lines',
     })
 
-    return (
-        <main className="mt-10">
-            <h1>Créer un devis</h1>
+    const tvaNonApplicable = form.watch('tva_non_applicable')
 
+    return (
+        <main className="mt-10 flex flex-col gap-5 items-center justify-center">
+            <h2 className="text-2xl font-bold text-center mb-20">
+                Créer un devis
+            </h2>
             <Form {...form}>
                 <form
-                    className="space-y-8"
+                    className="space-y-8 w-full max-w-4xl"
                     action={async (formData) => {
                         // Empêcher la soumission si aucun client n'est sélectionné
                         const values = form.getValues()
+                        if (!values.client_id) {
+                            form.setError('client_id', {
+                                type: 'required',
+                                message: 'Veuillez sélectionner un client',
+                            })
+                            return
+                        }
 
                         // Remettre le payload (inclut client_id et lines)
                         formData.append('payload', JSON.stringify(values))
                         await createQuote(formData)
                     }}
                 >
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Clients</label>
+                    <article className="space-y-2">
                         <Select
-                            value={form.watch('client_id')?.toString()}
-                            onValueChange={(value) => {
+                            label="Clients"
+                            name="client_id"
+                            value={selectValue}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setSelectValue(value)
                                 if (value === 'new-client') {
                                     setShowNewClientForm(true)
+                                    form.setValue('client_id', undefined)
+                                } else if (value === '') {
+                                    setShowNewClientForm(false)
                                     form.setValue('client_id', undefined)
                                 } else {
                                     setShowNewClientForm(false)
                                     form.setValue('client_id', Number(value))
                                 }
                             }}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Sélectionner un client" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectItem value="new-client">
-                                        Nouveau client
-                                    </SelectItem>
-                                    {clients.map((client) => (
-                                        <SelectItem
-                                            value={client.id.toString()}
-                                            key={client.id}
-                                        >
-                                            {client.firstname ||
-                                                client.company_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
+                            options={[
+                                { value: '', label: 'Sélectionner un client' },
+                                {
+                                    id: 'new-client',
+                                    value: 'new-client',
+                                    label: 'Nouveau client',
+                                },
+                                ...clients.map((client) => ({
+                                    id: client.id.toString(),
+                                    value: client.id.toString(),
+                                    label:
+                                        client.firstname || client.company_name,
+                                })),
+                            ]}
+                        />
+
                         {form.formState.errors.client_id && (
                             <p className="text-sm text-red-500">
                                 {form.formState.errors.client_id.message}
@@ -119,12 +129,12 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                             name="client_id"
                             value={(form.watch('client_id') ?? '').toString()}
                         />
-                    </div>
+                    </article>
 
                     {showNewClientForm && (
-                        <div className="border rounded-lg p-4 bg-gray-50">
+                        <article className="border rounded-lg p-4 bg-gray-50">
                             <FormClients standalone={false} />
-                        </div>
+                        </article>
                     )}
                     <Formfield
                         form={form}
@@ -138,7 +148,7 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                         label="Objet du devis"
                         placeholder="Ex: Site vitrine"
                     />
-                    <div className="grid grid-cols-3 gap-4">
+                    <article className="grid grid-cols-3 gap-4">
                         <Formfield
                             form={form}
                             name="currency"
@@ -158,82 +168,37 @@ export const FormQuotes = ({ clients }: { clients: Clients[] }) => {
                             label="Notes"
                             placeholder="Notes (optionnel)"
                         />
-                    </div>
-                    <div className="space-y-3">
-                        <div className="text-sm font-medium">Lignes</div>
-                        {fields.map((f, i) => (
-                            <div
-                                key={f.id}
-                                className="grid grid-cols-12 gap-2 items-end border rounded p-3"
-                            >
-                                <div className="col-span-4">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.description`}
-                                        label="Description"
-                                        placeholder="Ex: Intégration"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.type`}
-                                        label="Type"
-                                        placeholder="service/produit"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.quantity`}
-                                        label="Qté"
-                                        placeholder="1"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.unit_price`}
-                                        label="PU (€)"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <Formfield
-                                        form={form}
-                                        name={`lines.${i}.tax_rate`}
-                                        label="TVA %"
-                                        placeholder="20"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => remove(i)}
-                                    >
-                                        −
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() =>
-                                append({
-                                    description: '',
-                                    type: 'service',
-                                    quantity: 1,
-                                    unit_price: 0,
-                                    tax_rate: 20,
-                                })
-                            }
-                        >
-                            + Ajouter une ligne
-                        </Button>
-                    </div>
-
+                        <section className="flex items-center gap-2">
+                            <Checkbox
+                                id="TVA"
+                                checked={tvaNonApplicable}
+                                onCheckedChange={(checked) => {
+                                    form.setValue(
+                                        'tva_non_applicable',
+                                        checked as boolean
+                                    )
+                                    fields.forEach((_, index) => {
+                                        form.setValue(
+                                            `lines.${index}.tax_rate`,
+                                            checked ? 0 : 20
+                                        )
+                                    })
+                                }}
+                            />
+                            <Label htmlFor="TVA">TVA non applicable</Label>
+                            <input
+                                type="hidden"
+                                name="tva_non_applicable"
+                                value={tvaNonApplicable ? 'true' : 'false'}
+                            />
+                        </section>
+                    </article>
+                    <ItemsLineForm
+                        fields={fields}
+                        form={form}
+                        remove={remove}
+                        append={append}
+                    />
                     <Button type="submit">Créer le devis</Button>
                 </form>
             </Form>

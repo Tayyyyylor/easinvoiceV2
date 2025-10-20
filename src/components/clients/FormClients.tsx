@@ -60,11 +60,11 @@ export const FormClients = ({
     const selectType = [
         {
             value: 'individual',
-            label: 'Individuel',
+            label: 'Particuliers',
         },
         {
             value: 'company',
-            label: 'Société',
+            label: 'Professionnels',
         },
     ]
 

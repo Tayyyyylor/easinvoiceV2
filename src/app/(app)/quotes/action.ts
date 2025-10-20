@@ -161,3 +161,54 @@ export async function createQuote(formData: FormData) {
     revalidatePath('/dashboard')
     redirect(`/quotes/${quoteId}`)
 }
+
+export async function finalizeQuote(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const quoteId = Number(formData.get('quote_id'))
+
+    console.log('test quoteId', quoteId)
+
+    if (!quoteId) {
+        console.error('Quote ID is required')
+        redirect('/error')
+    }
+
+    // Vérifier que le devis appartient à l'utilisateur
+    const { data: quote, error: fetchError } = await supabase
+        .from('quotes')
+        .select('status')
+        .eq('id', quoteId)
+        .eq('owner_id', user.id)
+        .single()
+
+    console.log('test quote', quote)
+
+    if (fetchError || !quote) {
+        console.error('Quote not found or unauthorized', fetchError)
+        redirect('/error')
+    }
+
+    // Vérifier que le statut est 'draft'
+    if (quote.status !== 'draft') {
+        console.error('Quote is already finalized')
+        redirect('/error')
+    }
+
+    // Mettre à jour le statut
+    const { error: updateError } = await supabase
+        .from('quotes')
+        .update({ status: 'published' })
+        .eq('id', quoteId)
+        .eq('owner_id', user.id)
+
+    if (updateError) {
+        console.error('Failed to finalize quote', updateError)
+        redirect('/error')
+    }
+
+    revalidatePath(`/quotes/${quoteId}`)
+    revalidatePath('/quotes')
+    revalidatePath('/dashboard')
+    redirect(`/quotes`)
+}

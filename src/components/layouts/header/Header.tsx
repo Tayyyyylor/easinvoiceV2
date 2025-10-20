@@ -16,7 +16,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     return (
         <header className="p-1 flex items-center sticky top-0 left-0 w-full z-1000 justify-between bg-white border-b">
             <Link href="/">
-                <h1>EasInvoice</h1>
+                <h1>
+                    <Image
+                        src="/logo_black.png"
+                        alt="Logo"
+                        width={100}
+                        height={100}
+                    />
+                </h1>
             </Link>
             <div className="flex items-center gap-2">
                 <Navbar />

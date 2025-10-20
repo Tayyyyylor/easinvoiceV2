@@ -76,6 +76,18 @@ export async function POST(req: Request) {
         }
 
         let stripeCustomerId = customer?.customer_id
+        // ⚠️ IMPORTANT: En mode TEST, ignorer les customer_id de PRODUCTION
+        const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
+        if (
+            isTestMode &&
+            stripeCustomerId &&
+            !stripeCustomerId.startsWith('cus_test_')
+        ) {
+            console.warn(
+                "⚠️ Customer de production détecté en mode test, création d'un nouveau customer de test"
+            )
+            stripeCustomerId = undefined
+        }
 
         // 2) Créer un nouveau customer si nécessaire
         if (!stripeCustomerId) {
@@ -130,12 +142,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ url: session.url })
         } catch (stripeError) {
             console.error(
-                'Erreur lors de la création de la session:',
+                '❌ Erreur lors de la création de la session:',
                 stripeError
             )
+            // Afficher le message d'erreur complet de Stripe
+            const errorMessage =
+                stripeError instanceof Error
+                    ? stripeError.message
+                    : 'Erreur inconnue'
+            console.error("Message d'erreur Stripe:", errorMessage)
+
             return NextResponse.json(
                 {
                     error: 'Erreur lors de la création de la session de paiement',
+                    details: errorMessage,
                 },
                 { status: 500 }
             )

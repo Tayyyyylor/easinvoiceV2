@@ -35,7 +35,7 @@ export default function Dashboard({
             {!isProfileCompleted && <Headband />}
             {!isSubscribed && (
                 <Button onClick={() => router.push('/billing')}>
-                    Passez Prenium !
+                    Passez Premium !
                 </Button>
             )}
             <div className="relative flex flex-row items-center justify-center gap-8 w-full">

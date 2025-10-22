@@ -18,15 +18,10 @@ export const runtime = 'nodejs'
 
 // Route GET pour tester que le webhook est accessible
 export async function GET() {
-    console.log('✅ GET request reçu sur /api/webhook')
     return new Response('Webhook endpoint is working!', { status: 200 })
 }
 
 export async function POST(request: Request) {
-    // ⚠️ CE LOG DOIT S'AFFICHER QUOI QU'IL ARRIVE
-
-    console.log('🔔 ========== WEBHOOK POST REÇU ==========')
-
     const supabase = webhookClient
 
     let body: string
@@ -39,11 +34,6 @@ export async function POST(request: Request) {
         // Récupérer la signature
         const headersList = await headers()
         signature = headersList.get('stripe-signature') || ''
-
-        console.log(
-            'Webhook secret présent:',
-            !!process.env.STRIPE_WEBHOOK_SECRET
-        )
     } catch (error) {
         console.error('Erreur lecture body:', error)
         return new Response('Erreur lecture body', { status: 400 })
@@ -67,16 +57,9 @@ export async function POST(request: Request) {
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object as Stripe.Checkout.Session
-                console.log(' Session complétée:', {
-                    sessionId: session.id,
-                    subscription: session.subscription,
-                    customer: session.customer,
-                    mode: session.mode,
-                })
 
                 // Vérifier que c'est bien un abonnement
                 if (session.mode !== 'subscription') {
-                    console.log('Session pas en mode subscription, ignoré')
                     return new Response('OK - Not a subscription', {
                         status: 200,
                     })
@@ -95,23 +78,11 @@ export async function POST(request: Request) {
                     session.subscription as string
                 )) as unknown as StripeSubscription
 
-                console.log('📦 Subscription récupérée:', {
-                    id: subscription.id,
-                    status: subscription.status,
-                    metadata: subscription.metadata,
-                })
-
                 const supabaseUserId = subscription.metadata?.supabase_user_id
                 if (!supabaseUserId) {
                     console.error('❌ Pas de supabase_user_id dans metadata')
                     return new Response('Metadata manquante', { status: 400 })
                 }
-
-                // Log des timestamps pour debug
-                console.log('🕒 Timestamps reçus:', {
-                    start: subscription.current_period_start,
-                    end: subscription.current_period_end,
-                })
 
                 const subscriptionData = {
                     user_id: supabaseUserId,

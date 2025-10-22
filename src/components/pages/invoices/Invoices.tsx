@@ -1,17 +1,17 @@
 'use client'
 import { DetailsTemplate } from '@/components/DetailsTemplate'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
-import React from 'react'
 
 export const Invoices = ({ invoices }: { invoices: Invoices[] }) => {
-    const router = useRouter()
-    console.log('invoices', invoices)
     return (
-        <DetailsTemplate title="Facture" data={invoices} link="invoices">
-            <Button onClick={() => router.push('/invoices/create')}>
-                Créer une facture
-            </Button>
-        </DetailsTemplate>
+        <DetailsTemplate
+            titleButton={[
+                'Toutes les factures',
+                'Factures provisoires',
+                'Factures finalisées',
+                'Créer une facture',
+            ]}
+            data={invoices}
+            link="invoices"
+        />
     )
 }

@@ -10,14 +10,6 @@ export async function GET(request: NextRequest) {
             t.trim()
         ) || []
 
-    console.log('🔐 Maintenance Bypass API:')
-    console.log('  - Token reçu:', token)
-    console.log('  - Tokens autorisés:', maintenanceBypassTokens)
-    console.log(
-        '  - MAINTENANCE_BYPASS_TOKENS:',
-        process.env.MAINTENANCE_BYPASS_TOKENS
-    )
-
     // Vérifier si le token est valide
     if (!token || !maintenanceBypassTokens.includes(token)) {
         return NextResponse.json(
@@ -71,8 +63,6 @@ export async function DELETE() {
         path: '/',
         maxAge: 0,
     })
-
-    console.log('🗑️ Cookie supprimé')
 
     return response
 }

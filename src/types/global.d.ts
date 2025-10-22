@@ -50,6 +50,7 @@ interface Quotes extends BaseDocument {
 }
 
 interface Invoices extends BaseDocument {
+    formatted_no: string
     payment_date: string
     payment_method: string
     interest_rate: number

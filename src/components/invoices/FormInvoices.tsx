@@ -56,7 +56,15 @@ export const FormInvoices = ({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {
             terms: '',
-            lines: [],
+            lines: [
+                {
+                    description: '',
+                    type: 'service',
+                    quantity: 1,
+                    unit_price: 0,
+                    tax_rate: 20,
+                },
+            ],
             currency: 'EUR',
             name: '',
             description: '',

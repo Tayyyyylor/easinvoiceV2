@@ -28,14 +28,12 @@ export default function Dashboard({
         setShowPopup(true)
     }
 
-    console.log('isSubscribed', isSubscribed)
-
     return (
         <main className="flex flex-col items-center justify-center h-screen p-5">
             {!isProfileCompleted && <Headband />}
             {!isSubscribed && (
                 <Button onClick={() => router.push('/billing')}>
-                    Passez Prenium !
+                    Passez Premium !
                 </Button>
             )}
             <div className="relative flex flex-row items-center justify-center gap-8 w-full">

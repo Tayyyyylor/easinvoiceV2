@@ -45,10 +45,14 @@ export function InvoicePdf({
         },
     })
 
+    const isFinalized = invoice.status === 'published'
+    const title = isFinalized
+        ? invoice.formatted_no
+        : `Facture provisoire ${invoice.name ? `(${invoice.name})` : ''}`
     return (
         <Document>
             <Page size="A4" style={styles.page}>
-                <Header emitter={emitter} />
+                <Header emitter={emitter} title={title} />
                 <View>
                     <View style={styles.personalInfos}>
                         <Emitter emitter={emitter} />

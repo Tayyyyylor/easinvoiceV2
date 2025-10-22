@@ -164,3 +164,50 @@ export async function createInvoice(formData: FormData) {
     revalidatePath('/dashboard')
     redirect(`/invoices/${invoiceId}`)
 }
+
+export async function finalizeInvoice(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const invoiceId = Number(formData.get('invoice_id'))
+
+    if (!invoiceId) {
+        console.error('Invoice ID is required')
+        redirect('/error')
+    }
+
+    // Vérifier que la facture appartient à l'utilisateur
+    const { data: invoice, error: fetchError } = await supabase
+        .from('invoices')
+        .select('status')
+        .eq('id', invoiceId)
+        .eq('owner_id', user.id)
+        .single()
+
+    if (fetchError || !invoice) {
+        console.error('Invoice not found or unauthorized', fetchError)
+        redirect('/error')
+    }
+
+    // Vérifier que le statut est 'draft'
+    if (invoice.status !== 'draft') {
+        console.error('Invoice is already finalized')
+        redirect('/error')
+    }
+
+    // Mettre à jour le statut
+    const { error: updateError } = await supabase
+        .from('invoices')
+        .update({ status: 'published' })
+        .eq('id', invoiceId)
+        .eq('owner_id', user.id)
+
+    if (updateError) {
+        console.error('Failed to finalize invoice', updateError)
+        redirect('/error')
+    }
+
+    revalidatePath(`/invoices/${invoiceId}`)
+    revalidatePath('/invoices')
+    revalidatePath('/dashboard')
+    redirect(`/invoices`)
+}

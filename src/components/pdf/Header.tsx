@@ -1,7 +1,13 @@
 import { Image, StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 
-export const Header = ({ emitter }: { emitter?: Profile }) => {
+export const Header = ({
+    emitter,
+    title,
+}: {
+    emitter?: Profile
+    title: string
+}) => {
     const styles = StyleSheet.create({
         container: {
             width: '50%',
@@ -43,7 +49,7 @@ export const Header = ({ emitter }: { emitter?: Profile }) => {
         <View style={styles.container}>
             {logoUrl && <Image src={logoUrl} style={styles.logo} />}
             <View style={styles.titleContainer}>
-                <Text style={styles.title}>Facture Provisoire</Text>
+                <Text style={styles.title}>{title}</Text>
                 <Text style={styles.date}>
                     {new Date().toLocaleDateString('fr-FR')}
                 </Text>

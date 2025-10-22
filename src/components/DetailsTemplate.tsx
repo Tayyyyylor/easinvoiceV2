@@ -24,6 +24,8 @@ export const DetailsTemplate = ({
         return data.filter((dt) => dt.status === filter)
     }, [data, filter])
 
+    console.log('filteredData', filteredData)
+
     const getButtonClass = (status: FilterStatus) => {
         const baseClass = 'border px-3 py-1 rounded transition-colors'
         return filter === status
@@ -62,12 +64,15 @@ export const DetailsTemplate = ({
                 {filteredData.map((data) => (
                     <DetailsCard
                         key={data.id}
-                        title={data.name}
+                        title={
+                            data.name ||
+                            ('formatted_no' in data ? data.formatted_no : '')
+                        }
                         name={data.name}
                         price={data.total_cents / 100}
                         created_at={data.created_at}
                         status_label={data.status}
-                        onClick={() => router.push(`/quotes/${data.id}`)}
+                        onClick={() => router.push(`/${link}/${data.id}`)}
                     />
                 ))}
             </article>

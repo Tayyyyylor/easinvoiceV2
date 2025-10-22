@@ -167,8 +167,6 @@ export async function finalizeQuote(formData: FormData) {
 
     const quoteId = Number(formData.get('quote_id'))
 
-    console.log('test quoteId', quoteId)
-
     if (!quoteId) {
         console.error('Quote ID is required')
         redirect('/error')
@@ -181,8 +179,6 @@ export async function finalizeQuote(formData: FormData) {
         .eq('id', quoteId)
         .eq('owner_id', user.id)
         .single()
-
-    console.log('test quote', quote)
 
     if (fetchError || !quote) {
         console.error('Quote not found or unauthorized', fetchError)

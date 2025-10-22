@@ -33,7 +33,6 @@ export async function finalizeAccount(formData: FormData) {
         ...data,
     })
     if (error) {
-        console.log(error)
         console.error('error', error)
         redirect('/error')
     }

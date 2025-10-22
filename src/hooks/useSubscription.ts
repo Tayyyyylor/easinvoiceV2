@@ -25,9 +25,7 @@ export function useSubscription() {
                     setIsSubscribed(false)
                     return
                 }
-                console.log('test session', session)
                 const user = session.user
-                console.log('test user', user)
 
                 // D'abord, vérifions tous les abonnements de l'utilisateur
                 const { data: allSubscriptions, error: subError } =
@@ -35,11 +33,6 @@ export function useSubscription() {
                         .from('app_subscriptions')
                         .select('*')
                         .eq('user_id', user.id)
-
-                console.log(
-                    'test Tous les abonnements trouvés:',
-                    allSubscriptions
-                )
 
                 if (subError) {
                     console.error('test Erreur Supabase:', subError)
@@ -49,7 +42,6 @@ export function useSubscription() {
                 }
 
                 if (!allSubscriptions || allSubscriptions.length === 0) {
-                    console.log('test Aucun abonnement trouvé')
                     setIsSubscribed(false)
                     return
                 }
@@ -64,18 +56,12 @@ export function useSubscription() {
 
                 // Prendre le plus récent
                 const latestSubscription = sortedSubscriptions[0]
-                console.log('test Dernier abonnement:', latestSubscription)
 
                 // Liste des statuts valides selon Stripe
                 const validStatuses = ['active', 'trialing']
                 const isActive = validStatuses.includes(
                     latestSubscription.status
                 )
-
-                console.log("test Statut de l'abonnement:", {
-                    status: latestSubscription.status,
-                    isActive,
-                })
 
                 setIsSubscribed(isActive)
             } catch (err) {

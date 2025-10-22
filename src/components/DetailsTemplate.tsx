@@ -24,8 +24,6 @@ export const DetailsTemplate = ({
         return data.filter((dt) => dt.status === filter)
     }, [data, filter])
 
-    console.log('filteredData', filteredData)
-
     const getButtonClass = (status: FilterStatus) => {
         const baseClass = 'border px-3 py-1 rounded transition-colors'
         return filter === status

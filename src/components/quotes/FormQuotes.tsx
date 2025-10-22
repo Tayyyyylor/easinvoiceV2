@@ -55,7 +55,15 @@ export const FormQuotes = ({
         resolver: zodResolver(createQuoteSchema),
         defaultValues: {
             terms: '',
-            lines: [],
+            lines: [
+                {
+                    description: '',
+                    type: 'service',
+                    quantity: 1,
+                    unit_price: 0,
+                    tax_rate: 20,
+                },
+            ],
             currency: 'EUR',
             validity_days: 1,
             name: '',

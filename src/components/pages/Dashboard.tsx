@@ -28,8 +28,6 @@ export default function Dashboard({
         setShowPopup(true)
     }
 
-    console.log('isSubscribed', isSubscribed)
-
     return (
         <main className="flex flex-col items-center justify-center h-screen p-5">
             {!isProfileCompleted && <Headband />}

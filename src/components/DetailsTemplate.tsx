@@ -1,28 +1,76 @@
-import React from 'react'
-import { InfosList } from './dashboard/InfosList'
+import React, { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from './ui/button'
+import { DetailsCard } from './atoms/DetailsCard'
 
 interface DetailsTemplateProps {
-    title: string
-    data: Quotes[] | Invoices[] | Clients[]
-    children: React.ReactNode
+    titleButton: string[]
+    data: Quotes[] | Invoices[]
     link: string
 }
 
+type FilterStatus = 'all' | 'draft' | 'published'
+
 export const DetailsTemplate = ({
-    title,
+    titleButton,
     data,
-    children,
     link,
 }: DetailsTemplateProps) => {
+    const router = useRouter()
+    const [filter, setFilter] = useState<FilterStatus>('all')
+
+    const filteredData = useMemo(() => {
+        if (filter === 'all') return data
+        return data.filter((dt) => dt.status === filter)
+    }, [data, filter])
+
+    const getButtonClass = (status: FilterStatus) => {
+        const baseClass = 'border px-3 py-1 rounded transition-colors'
+        return filter === status
+            ? `${baseClass} bg-black text-white`
+            : `${baseClass} hover:bg-gray-100`
+    }
+
     return (
-        <main className="flex h-screen gap-4">
-            <aside className="w-80 h-screen sticky top-0 left-0">
-                <InfosList title={title} data={data} link={link} />
-            </aside>
-            <div className="flex-1 flex flex-col gap-4 p-4 overflow-y-auto">
-                <h1 className="text-2xl font-bold text-center">{title}</h1>
-                {children}
-            </div>
+        <main className="flex flex-col gap-4 max-w-4xl mx-auto p-4 border h-screen">
+            <article className="flex gap-2 justify-between items-center">
+                <div className="flex gap-2">
+                    <button
+                        className={getButtonClass('all')}
+                        onClick={() => setFilter('all')}
+                    >
+                        {titleButton[0]}
+                    </button>
+                    <button
+                        className={getButtonClass('draft')}
+                        onClick={() => setFilter('draft')}
+                    >
+                        {titleButton[1]}
+                    </button>
+                    <button
+                        className={getButtonClass('published')}
+                        onClick={() => setFilter('published')}
+                    >
+                        {titleButton[2]}
+                    </button>
+                </div>
+                <Button onClick={() => router.push(`/${link}/create`)}>
+                    {titleButton[3]}
+                </Button>
+            </article>
+            <article>
+                {filteredData.map((data) => (
+                    <DetailsCard
+                        key={data.id}
+                        title={data.name}
+                        name={data.name}
+                        price={data.total_cents / 100}
+                        created_at={data.created_at}
+                        status_label={data.status}
+                        onClick={() => router.push(`/quotes/${data.id}`)}
+                    />
+                ))}
+            </article>
         </main>
     )
 }

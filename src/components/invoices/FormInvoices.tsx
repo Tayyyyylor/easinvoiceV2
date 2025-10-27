@@ -42,21 +42,31 @@ const createInvoiceSchema = z.object({
     tva_non_applicable: z.boolean().optional(),
 })
 
-type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
+type FormInvoiceValues = z.infer<typeof createInvoiceSchema>
 
+interface FormInvoicesProps {
+    clients: Clients[]
+    initialData?: { invoice: Invoices; items: InvoiceItems[] }
+}
 export const FormInvoices = ({
     clients: initialClients,
-}: {
-    clients: Clients[]
-}) => {
+    initialData,
+}: FormInvoicesProps) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
     const [selectValue, setSelectValue] = useState('')
     const [clients, setClients] = useState(initialClients)
-    const form = useForm<CreateInvoiceValues>({
+    console.log('initialData', initialData)
+    const form = useForm<FormInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {
-            terms: '',
-            lines: [
+            terms: initialData?.invoice.terms || '',
+            lines: initialData?.items.map((item) => ({
+                description: item.description,
+                type: item.type,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                tax_rate: item.tax_rate,
+            })) || [
                 {
                     description: '',
                     type: 'service',
@@ -66,13 +76,14 @@ export const FormInvoices = ({
                 },
             ],
             currency: 'EUR',
-            name: '',
-            description: '',
-            client_id: undefined,
-            payment_date: '30 jours fin de mois',
-            payment_method: 'Virement bancaire',
-            interest_rate: 0,
-            tva_non_applicable: false,
+            name: initialData?.invoice.name || '',
+            description: initialData?.invoice.description || '',
+            client_id: initialData?.invoice.client_id || undefined,
+            payment_date:
+                initialData?.invoice.payment_date || '30 jours fin de mois',
+            payment_method:
+                initialData?.invoice.payment_method || 'Virement bancaire',
+            interest_rate: initialData?.invoice.interest_rate || 0,
         },
     })
 
@@ -96,7 +107,7 @@ export const FormInvoices = ({
     return (
         <main className="mt-10 flex flex-col gap-5 items-center justify-center">
             <h2 className="text-2xl font-bold text-center mb-20">
-                Créer une facture
+                {initialData?.invoice.id ? 'Modifier' : 'Créer'} une facture
             </h2>
             <Form {...form}>
                 <form
@@ -267,7 +278,10 @@ export const FormInvoices = ({
                             placeholder="Intérêts de retard"
                         />
                     </article>
-                    <Button type="submit">Créer la facture</Button>
+                    <Button type="submit">
+                        {initialData?.invoice.id ? 'Modifier' : 'Créer'} la
+                        facture
+                    </Button>
                 </form>
             </Form>
         </main>

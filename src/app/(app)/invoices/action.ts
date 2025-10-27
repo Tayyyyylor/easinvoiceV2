@@ -165,6 +165,55 @@ export async function createInvoice(formData: FormData) {
     redirect(`/invoices/${invoiceId}`)
 }
 
+export async function updateInvoice(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const invoiceId = Number(formData.get('invoice_id'))
+
+    if (!invoiceId) {
+        console.error('Invoice ID is required')
+        redirect('/error')
+    }
+
+    const { data: invoice, error: fetchError } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('id', invoiceId)
+        .eq('owner_id', user.id)
+        .single()
+
+    if (fetchError || !invoice) {
+        console.error('Invoice not found or unauthorized', fetchError)
+        redirect('/error')
+    }
+
+    const { data: items, error: itemsError } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', invoiceId)
+        .order('id', { ascending: true })
+
+    if (itemsError || !items) {
+        console.error('Invoice items not found or unauthorized', itemsError)
+        redirect('/error')
+    }
+
+    const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', invoice.client_id)
+        .eq('owner_id', user.id)
+        .single()
+
+    if (clientError || !client) {
+        console.error('createInvoice validation error: client_id is required')
+        redirect('/error')
+    }
+
+    revalidatePath(`/invoices/${invoiceId}`)
+    redirect(`/invoices/${invoiceId}`)
+}
+
 export async function finalizeInvoice(formData: FormData) {
     const { user, supabase } = await getAuthenticatedUser()
 

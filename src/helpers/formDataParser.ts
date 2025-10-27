@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { SupabaseClient } from '@supabase/supabase-js'
 import { eurosToCents, toNumber } from './conversions'
 
 export interface LineItem {
@@ -94,4 +95,76 @@ export function calculateTotals(lines: LineItem[]): LineTotals {
         tax_cents,
         total_cents,
     }
+}
+
+interface DocumentSequence {
+    supabase: SupabaseClient
+    userId: string
+    documentType: 'invoice' | 'quote'
+}
+
+export async function generateDocumentNumber({
+    supabase,
+    userId,
+    documentType = 'invoice',
+}: DocumentSequence): Promise<string> {
+    const currentYear = new Date().getFullYear()
+
+    // Récupérer ou créer la séquence pour cette année et cet utilisateur
+    const { data: sequence, error: fetchError } = await supabase
+        .from(`${documentType}_sequence`)
+        .select('*')
+        .eq('owner_id', userId)
+        .eq('year', currentYear)
+        .single()
+
+    let nextNumber = 1
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 = no rows returned (c'est OK, on va créer)
+        console.error(
+            'Erreur lors de la récupération de la séquence:',
+            fetchError
+        )
+        throw fetchError
+    }
+
+    if (sequence && sequence.last_value && sequence.last_value > 0) {
+        // La séquence existe, on incrémente
+        nextNumber = sequence.last_value + 1
+
+        const { error: updateError } = await supabase
+            .from(`${documentType}_sequence`)
+            .update({ last_value: nextNumber })
+            .eq('id', sequence.id)
+
+        if (updateError) {
+            console.error(
+                'Erreur lors de la mise à jour de la séquence:',
+                updateError
+            )
+            throw updateError
+        }
+    } else {
+        // Première facture de l'année, on crée la séquence
+        const { error: insertError } = await supabase
+            .from(`${documentType}_sequence`)
+            .insert({
+                owner_id: userId,
+                year: currentYear,
+                last_value: nextNumber,
+            })
+
+        if (insertError) {
+            console.error(
+                'Erreur lors de la création de la séquence:',
+                insertError
+            )
+            throw insertError
+        }
+    }
+
+    // Formater le numéro: f + année + numéro sur 4 chiffres
+    const formattedNumber = `${documentType === 'invoice' ? 'F' : 'D'}${currentYear}${nextNumber.toString().padStart(4, '0')}`
+    return formattedNumber
 }

@@ -63,8 +63,15 @@ export const DetailsTemplate = ({
                     <DetailsCard
                         key={data.id}
                         title={
-                            data.name ||
-                            ('formatted_no' in data ? data.formatted_no : '')
+                            'formatted_no' in data &&
+                            data.formatted_no &&
+                            data.status === 'published'
+                                ? data.formatted_no
+                                : data.name ||
+                                  ('formatted_no' in data
+                                      ? data.formatted_no
+                                      : '') ||
+                                  `#${data.id}`
                         }
                         name={data.name}
                         price={data.total_cents / 100}

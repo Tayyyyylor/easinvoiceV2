@@ -4,7 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { toNumber } from '@/helpers/conversions'
 import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
-import { parseLines, calculateTotals } from '@/helpers/formDataParser'
+import {
+    parseLines,
+    calculateTotals,
+    generateDocumentNumber,
+} from '@/helpers/formDataParser'
 
 export async function createInvoice(formData: FormData) {
     const { user, supabase } = await getAuthenticatedUser()
@@ -167,7 +171,7 @@ export async function finalizeInvoice(formData: FormData) {
     // Vérifier que la facture appartient à l'utilisateur
     const { data: invoice, error: fetchError } = await supabase
         .from('invoices')
-        .select('status')
+        .select('status, formatted_no')
         .eq('id', invoiceId)
         .eq('owner_id', user.id)
         .single()
@@ -183,10 +187,26 @@ export async function finalizeInvoice(formData: FormData) {
         redirect('/error')
     }
 
-    // Mettre à jour le statut
+    // Générer le numéro de facture unique
+    let invoiceNumber: string
+    try {
+        invoiceNumber = await generateDocumentNumber({
+            supabase,
+            userId: user.id,
+            documentType: 'invoice',
+        })
+    } catch (error) {
+        console.error('Failed to generate invoice number', error)
+        redirect('/error')
+    }
+
+    // Mettre à jour le statut et le numéro de facture
     const { error: updateError } = await supabase
         .from('invoices')
-        .update({ status: 'published' })
+        .update({
+            status: 'published',
+            formatted_no: invoiceNumber,
+        })
         .eq('id', invoiceId)
         .eq('owner_id', user.id)
 

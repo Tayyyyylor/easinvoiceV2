@@ -4,7 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { toNumber } from '@/helpers/conversions'
 import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
-import { parseLines, calculateTotals } from '@/helpers/formDataParser'
+import {
+    parseLines,
+    calculateTotals,
+    generateDocumentNumber,
+} from '@/helpers/formDataParser'
 
 export async function createQuote(formData: FormData) {
     const { user, supabase } = await getAuthenticatedUser()
@@ -181,10 +185,23 @@ export async function finalizeQuote(formData: FormData) {
         redirect('/error')
     }
 
+    // Générer le numéro de facture unique
+    let quoteNumber: string
+    try {
+        quoteNumber = await generateDocumentNumber({
+            supabase,
+            userId: user.id,
+            documentType: 'quote',
+        })
+    } catch (error) {
+        console.error('Failed to generate invoice number', error)
+        redirect('/error')
+    }
+
     // Mettre à jour le statut
     const { error: updateError } = await supabase
         .from('quotes')
-        .update({ status: 'published' })
+        .update({ status: 'published', formatted_no: quoteNumber })
         .eq('id', quoteId)
         .eq('owner_id', user.id)
 

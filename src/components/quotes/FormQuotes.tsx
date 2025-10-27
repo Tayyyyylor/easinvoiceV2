@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { Form } from '../ui/form'
 import { Button } from '../ui/button'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createQuote } from '@/app/(app)/quotes/action'
+import { createQuote, updateQuote } from '@/app/(app)/quotes/action'
 import { Formfield } from '../atoms/Formfield'
 import { FormClients } from '../clients/FormClients'
 import { Select } from '../atoms/Select'
@@ -42,20 +42,30 @@ const createQuoteSchema = z.object({
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
+interface FormQuotesProps {
+    clients: Clients[]
+    initialData?: { quote: Quotes; items: QuoteItems[] }
+}
 export const FormQuotes = ({
     clients: initialClients,
-}: {
-    clients: Clients[]
-}) => {
+    initialData,
+}: FormQuotesProps) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
     const [selectValue, setSelectValue] = useState('')
     const [clients, setClients] = useState(initialClients)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
         defaultValues: {
-            terms: '',
-            lines: [
+            terms: initialData?.quote.terms || '',
+            lines: initialData?.items.map((item) => ({
+                description: item.description,
+                type: item.type,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                tax_rate: item.tax_rate,
+            })) || [
                 {
                     description: '',
                     type: 'service',
@@ -65,10 +75,10 @@ export const FormQuotes = ({
                 },
             ],
             currency: 'EUR',
-            validity_days: 1,
-            name: '',
-            description: '',
-            client_id: undefined,
+            validity_days: initialData?.quote.validity_days || 1,
+            name: initialData?.quote.name || '',
+            description: initialData?.quote.description || '',
+            client_id: initialData?.quote.client_id || undefined,
             tva_non_applicable: false,
         },
     })
@@ -93,25 +103,48 @@ export const FormQuotes = ({
     return (
         <main className="mt-10 flex flex-col gap-5 items-center justify-center">
             <h2 className="text-2xl font-bold text-center mb-20">
-                Créer un devis
+                {initialData?.quote.id ? 'Modifier' : 'Créer'} un devis
             </h2>
             <Form {...form}>
                 <form
                     className="space-y-8 w-full max-w-4xl"
                     action={async (formData) => {
-                        // Empêcher la soumission si aucun client n'est sélectionné
-                        const values = form.getValues()
-                        if (!values.client_id) {
-                            form.setError('client_id', {
-                                type: 'required',
-                                message: 'Veuillez sélectionner un client',
-                            })
-                            return
-                        }
+                        // Empêcher la double soumission
+                        if (isSubmitting) return
+                        setIsSubmitting(true)
 
-                        // Remettre le payload (inclut client_id et lines)
-                        formData.append('payload', JSON.stringify(values))
-                        await createQuote(formData)
+                        try {
+                            // Empêcher la soumission si aucun client n'est sélectionné
+                            const values = form.getValues()
+                            if (!values.client_id) {
+                                form.setError('client_id', {
+                                    type: 'required',
+                                    message: 'Veuillez sélectionner un client',
+                                })
+                                setIsSubmitting(false)
+                                return
+                            }
+
+                            // Remettre le payload (inclut client_id et lines)
+                            formData.append('payload', JSON.stringify(values))
+
+                            // Ajouter l'ID du devis si on est en mode édition
+                            if (initialData?.quote.id) {
+                                formData.append(
+                                    'quote_id',
+                                    initialData.quote.id.toString()
+                                )
+                                await updateQuote(formData)
+                            } else {
+                                await createQuote(formData)
+                            }
+                        } catch (error) {
+                            console.error(
+                                'Erreur lors de la soumission:',
+                                error
+                            )
+                            setIsSubmitting(false)
+                        }
                     }}
                 >
                     <article className="space-y-2">
@@ -248,7 +281,11 @@ export const FormQuotes = ({
                         append={append}
                         tvaNonApplicable={tvaNonApplicable}
                     />
-                    <Button type="submit">Créer le devis</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting
+                            ? 'En cours...'
+                            : `${initialData?.quote.id ? 'Modifier' : 'Créer'} le devis`}
+                    </Button>
                 </form>
             </Form>
         </main>

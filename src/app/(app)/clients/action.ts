@@ -85,3 +85,60 @@ export async function createAClientAndReturn(formData: FormData) {
     revalidatePath('/invoices/create')
     return { success: true, data }
 }
+
+export async function updateClient(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const clientId = Number(formData.get('client_id'))
+
+    if (!clientId) {
+        console.error('Client ID is required')
+        redirect('/error')
+    }
+
+    const { data: existingClient, error: fetchError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('id', clientId)
+        .eq('owner_id', user.id)
+        .single()
+
+    if (fetchError || !existingClient) {
+        console.error('Client not found or unauthorized', fetchError)
+        redirect('/error')
+    }
+
+    let payload: ClientFormPayload | null = null
+    if (formData.get('payload')) {
+        try {
+            payload = JSON.parse(formData.get('payload') as string)
+        } catch (e) {
+            console.error('invalid payload json', e)
+        }
+    }
+
+    if (!payload) {
+        console.error('No payload provided')
+        redirect('/error')
+    }
+
+    const { error: updateError } = await supabase
+        .from('clients')
+        .update(payload)
+        .eq('id', clientId)
+        .eq('owner_id', user.id)
+
+    if (updateError) {
+        console.error('Update client error:', {
+            code: updateError.code,
+            message: updateError.message,
+            details: updateError.details,
+            hint: updateError.hint,
+        })
+        redirect('/error')
+    }
+
+    revalidatePath(`/clients/${clientId}`)
+    revalidatePath('/clients')
+    redirect(`/clients/${clientId}`)
+}

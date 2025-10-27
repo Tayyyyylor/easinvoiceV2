@@ -1,15 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { eurosToCents, toNumber } from '@/helpers/conversions'
+import { toNumber } from '@/helpers/conversions'
 import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
+import {
+    parseLines,
+    calculateTotals,
+    generateDocumentNumber,
+} from '@/helpers/formDataParser'
 
-export async function createQuote(formData: FormData) {
-    const { user, supabase } = await getAuthenticatedUser()
-
-    // Support payload JSON pour valeurs issues de RHF
+// Fonction commune pour extraire les données du formulaire
+function parseQuoteFormData(formData: FormData) {
     let payload: QuoteFormPayload | null = null
     if (formData.get('payload')) {
         try {
@@ -36,97 +38,45 @@ export async function createQuote(formData: FormData) {
             formData.get('client_id') ?? payload?.client_id?.toString() ?? null
         ) ?? null
 
-    // Validation serveur: client obligatoire
-    if (!client_id) {
+    const linesArr = parseLines(formData, payload)
+    const { subtotal_cents, tax_cents, total_cents } = calculateTotals(linesArr)
+
+    return {
+        client_id,
+        name: formData.get('name') as string,
+        validity_days: validityDays,
+        description,
+        currency,
+        terms,
+        subtotal_cents,
+        tax_cents,
+        total_cents,
+        linesArr,
+    }
+}
+
+export async function createQuote(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const data = parseQuoteFormData(formData)
+
+    if (!data.client_id) {
         console.error('createQuote validation error: client_id is required')
         redirect('/error')
     }
 
-    // type-casting here for convenience
-    // in practice, you should validate your inputs
-    const linesMap = new Map<number, Record<string, any>>()
-    for (const [key, value] of formData.entries()) {
-        const m = key.match(/^lines(?:\[(\d+)\]|\.(\d+))\.(.+)$/) // support lines[0].x or lines.0.x
-        if (m) {
-            const idx = Number(m[1] ?? m[2])
-            const field = m[3]
-            if (!linesMap.has(idx)) linesMap.set(idx, {})
-            linesMap.get(idx)![field] = value
-        }
+    if (data.linesArr.length === 0) {
+        redirect('/error')
     }
-
-    // Si payload fourni, on récupère les lignes depuis payload
-    if (linesMap.size === 0 && payload?.lines && Array.isArray(payload.lines)) {
-        payload.lines.forEach((l: QuoteFormPayload, i: number) =>
-            linesMap.set(i, l)
-        )
-    }
-
-    const linesArr: Array<{
-        description: string
-        type?: string
-        quantity: number
-        total_price: number
-        unit_price: number
-        tax_rate: number
-    }> = []
-
-    for (const [, obj] of Array.from(linesMap.entries()).sort(
-        (a, b) => a[0] - b[0]
-    )) {
-        const desc = (obj.description ?? obj.label ?? '') + ''
-        const type = (obj.type ?? 'service') + ''
-        const quantity = toNumber(obj.quantity ?? obj.qty ?? '1') ?? 1
-        const unit_price =
-            toNumber(obj.unit_price ?? obj.unit_price_eur ?? '0') ?? 0
-        const tax_rate_pct = toNumber(obj.tax_rate ?? obj.tax ?? '0') ?? 0
-
-        const unit_price_cents = eurosToCents(unit_price)
-        const line_total_cents = Math.round(quantity * unit_price_cents)
-
-        linesArr.push({
-            description: desc,
-            type,
-            quantity,
-            unit_price,
-            total_price: line_total_cents,
-            tax_rate: tax_rate_pct,
-        })
-    }
-
-    if (linesArr.length === 0) {
-        // pas de lignes => erreur de validation
-        redirect('/error') // ou throw new Error(...)
-    }
-
-    // calcule totaux
-    const subtotal_cents = linesArr.reduce(
-        (s, l) => s + (l.total_price ?? 0),
-        0
-    )
-    // calcul des taxes : pour chaque ligne, taxe = line_total * tax_rate_pct/100
-    const tax_cents = linesArr.reduce(
-        (s, l) =>
-            s + Math.round(((l.total_price ?? 0) * (l.tax_rate ?? 0)) / 100),
-        0
-    )
-    const total_cents = subtotal_cents + tax_cents
 
     // insert quote
     const { data: insertedQuote, error: qErr } = await supabase
         .from('quotes')
         .insert({
             owner_id: user.id,
-            client_id,
-            name: formData.get('name') as string,
-            validity_days: validityDays,
             status: 'draft',
-            description,
-            currency,
-            terms,
-            subtotal_cents,
-            tax_cents,
-            total_cents,
+            ...data,
+            linesArr: undefined, // exclure linesArr
         })
         .select('id')
         .single()
@@ -138,8 +88,8 @@ export async function createQuote(formData: FormData) {
 
     const quoteId = (insertedQuote as QuoteFormPayload).id
 
-    // prepare items for insertion
-    const itemsToInsert = linesArr.map((l) => ({
+    // Insert quote items
+    const itemsToInsert = data.linesArr.map((l) => ({
         quote_id: quoteId,
         description: l.description,
         type: l.type,
@@ -149,7 +99,6 @@ export async function createQuote(formData: FormData) {
         total_price: l.total_price,
     }))
 
-    // insert quote items
     const { error: itemsErr } = await supabase
         .from('quote_items')
         .insert(itemsToInsert)
@@ -159,6 +108,91 @@ export async function createQuote(formData: FormData) {
     }
 
     revalidatePath('/dashboard')
+    redirect(`/quotes/${quoteId}`)
+}
+
+export async function updateQuote(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const quoteId = Number(formData.get('quote_id'))
+
+    if (!quoteId) {
+        console.error('Quote ID is required')
+        redirect('/error')
+    }
+
+    // Vérifier que le devis existe et appartient à l'utilisateur
+    const { data: existingQuote, error: fetchError } = await supabase
+        .from('quotes')
+        .select('id, status')
+        .eq('id', quoteId)
+        .eq('owner_id', user.id)
+        .single()
+
+    if (fetchError || !existingQuote) {
+        console.error('Quote not found or unauthorized', fetchError)
+        redirect('/error')
+    }
+
+    const data = parseQuoteFormData(formData)
+
+    if (!data.client_id) {
+        console.error('updateQuote validation error: client_id is required')
+        redirect('/error')
+    }
+
+    if (data.linesArr.length === 0) {
+        redirect('/error')
+    }
+
+    // Mettre à jour le devis
+    const { error: updateError } = await supabase
+        .from('quotes')
+        .update({
+            ...data,
+            linesArr: undefined, // exclure linesArr
+        })
+        .eq('id', quoteId)
+        .eq('owner_id', user.id)
+
+    if (updateError) {
+        console.error('quote update error', updateError)
+        redirect('/error')
+    }
+
+    // Supprimer les anciennes lignes et insérer les nouvelles
+    const { error: deleteError } = await supabase
+        .from('quote_items')
+        .delete()
+        .eq('quote_id', quoteId)
+
+    if (deleteError) {
+        console.error('quote items delete error', deleteError)
+        redirect('/error')
+    }
+
+    const itemsToInsert = data.linesArr.map((l) => ({
+        quote_id: quoteId,
+        description: l.description,
+        type: l.type,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        tax_rate: l.tax_rate,
+        total_price: l.total_price,
+    }))
+
+    const { error: itemsErr } = await supabase
+        .from('quote_items')
+        .insert(itemsToInsert)
+
+    if (itemsErr) {
+        console.error('quote items insert error', itemsErr)
+        redirect('/error')
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/quotes')
+    revalidatePath(`/quotes/${quoteId}`)
     redirect(`/quotes/${quoteId}`)
 }
 
@@ -191,10 +225,23 @@ export async function finalizeQuote(formData: FormData) {
         redirect('/error')
     }
 
+    // Générer le numéro de facture unique
+    let quoteNumber: string
+    try {
+        quoteNumber = await generateDocumentNumber({
+            supabase,
+            userId: user.id,
+            documentType: 'quote',
+        })
+    } catch (error) {
+        console.error('Failed to generate invoice number', error)
+        redirect('/error')
+    }
+
     // Mettre à jour le statut
     const { error: updateError } = await supabase
         .from('quotes')
-        .update({ status: 'published' })
+        .update({ status: 'published', formatted_no: quoteNumber })
         .eq('id', quoteId)
         .eq('owner_id', user.id)
 

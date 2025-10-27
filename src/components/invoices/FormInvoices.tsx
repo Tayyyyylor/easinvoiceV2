@@ -6,7 +6,7 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Formfield } from '../atoms/Formfield'
 import { Button } from '../ui/button'
-import { createInvoice } from '@/app/(app)/invoices/action'
+import { createInvoice, updateInvoice } from '@/app/(app)/invoices/action'
 import { Checkbox } from '../ui/checkbox'
 import { Label } from '../ui/label'
 import { FormClients } from '../clients/FormClients'
@@ -42,21 +42,32 @@ const createInvoiceSchema = z.object({
     tva_non_applicable: z.boolean().optional(),
 })
 
-type CreateInvoiceValues = z.infer<typeof createInvoiceSchema>
+type FormInvoiceValues = z.infer<typeof createInvoiceSchema>
 
+interface FormInvoicesProps {
+    clients: Clients[]
+    initialData?: { invoice: Invoices; items: InvoiceItems[] }
+}
 export const FormInvoices = ({
     clients: initialClients,
-}: {
-    clients: Clients[]
-}) => {
+    initialData,
+}: FormInvoicesProps) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
     const [selectValue, setSelectValue] = useState('')
     const [clients, setClients] = useState(initialClients)
-    const form = useForm<CreateInvoiceValues>({
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    console.log('initialData', initialData)
+    const form = useForm<FormInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {
-            terms: '',
-            lines: [
+            terms: initialData?.invoice.terms || '',
+            lines: initialData?.items.map((item) => ({
+                description: item.description,
+                type: item.type,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                tax_rate: item.tax_rate,
+            })) || [
                 {
                     description: '',
                     type: 'service',
@@ -66,13 +77,14 @@ export const FormInvoices = ({
                 },
             ],
             currency: 'EUR',
-            name: '',
-            description: '',
-            client_id: undefined,
-            payment_date: '30 jours fin de mois',
-            payment_method: 'Virement bancaire',
-            interest_rate: 0,
-            tva_non_applicable: false,
+            name: initialData?.invoice.name || '',
+            description: initialData?.invoice.description || '',
+            client_id: initialData?.invoice.client_id || undefined,
+            payment_date:
+                initialData?.invoice.payment_date || '30 jours fin de mois',
+            payment_method:
+                initialData?.invoice.payment_method || 'Virement bancaire',
+            interest_rate: initialData?.invoice.interest_rate || 0,
         },
     })
 
@@ -96,25 +108,48 @@ export const FormInvoices = ({
     return (
         <main className="mt-10 flex flex-col gap-5 items-center justify-center">
             <h2 className="text-2xl font-bold text-center mb-20">
-                Créer une facture
+                {initialData?.invoice.id ? 'Modifier' : 'Créer'} une facture
             </h2>
             <Form {...form}>
                 <form
                     className="space-y-8 w-full max-w-4xl"
                     action={async (formData) => {
-                        // Empêcher la soumission si aucun client n'est sélectionné
-                        const values = form.getValues()
-                        if (!values.client_id) {
-                            form.setError('client_id', {
-                                type: 'required',
-                                message: 'Veuillez sélectionner un client',
-                            })
-                            return
-                        }
+                        // Empêcher la double soumission
+                        if (isSubmitting) return
+                        setIsSubmitting(true)
 
-                        // Remettre le payload (inclut client_id et lines)
-                        formData.append('payload', JSON.stringify(values))
-                        await createInvoice(formData)
+                        try {
+                            // Empêcher la soumission si aucun client n'est sélectionné
+                            const values = form.getValues()
+                            if (!values.client_id) {
+                                form.setError('client_id', {
+                                    type: 'required',
+                                    message: 'Veuillez sélectionner un client',
+                                })
+                                setIsSubmitting(false)
+                                return
+                            }
+
+                            // Remettre le payload (inclut client_id et lines)
+                            formData.append('payload', JSON.stringify(values))
+
+                            // Ajouter l'ID de la facture si on est en mode édition
+                            if (initialData?.invoice.id) {
+                                formData.append(
+                                    'invoice_id',
+                                    initialData.invoice.id.toString()
+                                )
+                                await updateInvoice(formData)
+                            } else {
+                                await createInvoice(formData)
+                            }
+                        } catch (error) {
+                            console.error(
+                                'Erreur lors de la soumission:',
+                                error
+                            )
+                            setIsSubmitting(false)
+                        }
                     }}
                 >
                     <article className="space-y-2">
@@ -267,7 +302,11 @@ export const FormInvoices = ({
                             placeholder="Intérêts de retard"
                         />
                     </article>
-                    <Button type="submit">Créer la facture</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting
+                            ? 'En cours...'
+                            : `${initialData?.invoice.id ? 'Modifier' : 'Créer'} la facture`}
+                    </Button>
                 </form>
             </Form>
         </main>

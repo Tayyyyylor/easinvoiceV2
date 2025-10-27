@@ -8,6 +8,7 @@ const PDFViewer = dynamic(
 import { useAuth } from '@/contexts/useAuth'
 import { InvoicePdf } from '@/components/pdf/InvoicePdf'
 import { finalizeInvoice } from '@/app/(app)/invoices/action'
+import { useRouter } from 'next/navigation'
 
 export const InvoiceDetails = ({
     invoice,
@@ -18,6 +19,7 @@ export const InvoiceDetails = ({
     items?: InvoiceItems[]
     client?: Clients
 }) => {
+    const router = useRouter()
     const { profile } = useAuth()
     const [showConfirm, setShowConfirm] = useState(false)
 
@@ -30,7 +32,7 @@ export const InvoiceDetails = ({
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `facture-${invoice.id}.pdf`
+        a.download = `facture-${invoice.formatted_no}.pdf`
         a.click()
         URL.revokeObjectURL(url)
     }
@@ -40,7 +42,18 @@ export const InvoiceDetails = ({
     return (
         <div className="p-6 space-y-4">
             <div className="flex items-center gap-3">
-                <h1 className="text-xl">Facture #{invoice.id}</h1>
+                <h1 className="text-xl">
+                    {isDraft ? (
+                        `Facture #${invoice.id}`
+                    ) : (
+                        <span>
+                            Facture
+                            <span className="font-bold">
+                                {invoice.formatted_no}
+                            </span>
+                        </span>
+                    )}
+                </h1>
                 <span
                     className={`px-3 py-1 rounded text-sm ${
                         isDraft
@@ -63,6 +76,16 @@ export const InvoiceDetails = ({
                         onClick={() => setShowConfirm(true)}
                     >
                         Finaliser la facture
+                    </button>
+                )}
+                {isDraft && (
+                    <button
+                        className="border px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-800"
+                        onClick={() =>
+                            router.push(`/invoices/${invoice.id}/edit`)
+                        }
+                    >
+                        Modifier la facture
                     </button>
                 )}
 

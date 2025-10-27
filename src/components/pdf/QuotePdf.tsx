@@ -45,10 +45,15 @@ export function QuotePdf({
         },
     })
 
+    const isFinalized = quote.status === 'published'
+    const title = isFinalized
+        ? quote.formatted_no
+        : `Facture provisoire ${quote.name ? `(${quote.name})` : ''}`
+
     return (
         <Document>
             <Page size="A4" style={styles.page}>
-                <Text style={styles.title}>Devis Provisoire</Text>
+                <Text style={styles.title}>{title}</Text>
                 <Text style={styles.date}>
                     {new Date().toLocaleDateString('fr-FR')}
                 </Text>

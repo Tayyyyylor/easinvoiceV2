@@ -2,6 +2,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export const Clients = ({ clients }: { clients: Clients[] }) => {
     const router = useRouter()
@@ -16,10 +17,12 @@ export const Clients = ({ clients }: { clients: Clients[] }) => {
                             .filter((client) => client.type === 'company')
                             .map((client) => (
                                 <li key={client.id}>
-                                    {client.company_name ||
-                                        client.firstname +
-                                            ' ' +
-                                            client.lastname}
+                                    <Link href={`/clients/${client.id}`}>
+                                        {client.company_name ||
+                                            client.firstname +
+                                                ' ' +
+                                                client.lastname}
+                                    </Link>
                                 </li>
                             ))}
                     </ul>
@@ -31,7 +34,11 @@ export const Clients = ({ clients }: { clients: Clients[] }) => {
                             .filter((client) => client.type === 'individual')
                             .map((client) => (
                                 <li key={client.id}>
-                                    {client.firstname + ' ' + client.lastname}
+                                    <Link href={`/clients/${client.id}`}>
+                                        {client.firstname +
+                                            ' ' +
+                                            client.lastname}
+                                    </Link>
                                 </li>
                             ))}
                     </ul>

@@ -30,6 +30,8 @@ interface Clients {
     type: string
 }
 
+type ClientFormPayload = Partial<Clients>
+
 interface BaseDocument {
     id: number
     status: 'draft' | 'published'
@@ -43,6 +45,7 @@ interface BaseDocument {
     terms: string
     created_at: string
     pdf_overrides: React.Node
+    formatted_no: string
 }
 
 interface Quotes extends BaseDocument {
@@ -50,7 +53,6 @@ interface Quotes extends BaseDocument {
 }
 
 interface Invoices extends BaseDocument {
-    formatted_no: string
     payment_date: string
     payment_method: string
     interest_rate: number

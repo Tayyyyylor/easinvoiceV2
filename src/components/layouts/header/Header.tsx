@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import useMobile from '@/hooks/useMobile'
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
-    const [isProfileOpen, setIsProfileOpen] = useState(false)
     const router = useRouter()
+    const isMobile = useMobile()
+    const [isProfileOpen, setIsProfileOpen] = useState(false)
 
     const handleProfileClick = () => {
         setIsProfileOpen(!isProfileOpen)
@@ -26,27 +28,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 </h1>
             </Link>
             <div className="flex items-center gap-2">
-                <Navbar />
+                <Navbar isLoggedIn={isLoggedIn} />
             </div>
-            {!isLoggedIn ? (
-                <div className="flex items-center gap-2">
-                    <Button variant="default" asChild>
-                        <Link href="/signup">Signup</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                        <Link href="/login">Login</Link>
-                    </Button>
-                </div>
-            ) : (
+
+            {isLoggedIn && !isMobile && (
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild>
                         <Link href="/dashboard">Dashboard</Link>
                     </Button>
-                    <form action="/auth/signout" method="post">
-                        <Button variant="outline" type="submit">
-                            Logout
-                        </Button>
-                    </form>
                     <Button variant="outline" onClick={handleProfileClick}>
                         <Image
                             src="/user-default.png"

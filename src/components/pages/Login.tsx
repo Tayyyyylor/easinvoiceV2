@@ -8,6 +8,8 @@ import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import Link from 'next/link'
 import { Formfield } from '../atoms/Formfield'
+import Image from 'next/image'
+import useMobile from '@/hooks/useMobile'
 
 const formSchema = z.object({
     email: z.email({
@@ -17,6 +19,7 @@ const formSchema = z.object({
 })
 type LoginValues = z.infer<typeof formSchema>
 const Login = () => {
+    const isMobile = useMobile()
     const [state, formAction] = useActionState(login, null)
 
     const form = useForm<LoginValues>({
@@ -42,8 +45,7 @@ const Login = () => {
         },
     ]
     const formContent = (
-        <>
-            <h2>Connexion</h2>
+        <section className="flex flex-col gap-4 border p-10 rounded-lg w-full">
             {state?.error && (
                 <div
                     className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
@@ -64,13 +66,25 @@ const Login = () => {
             >
                 {form.formState.isSubmitting ? 'Connexion...' : 'Se connecter'}
             </Button>
-        </>
+        </section>
     )
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
+            <article className="flex flex-col items-center justify-center gap-4 mb-15">
+                <Image
+                    src="/logo_black.png"
+                    alt="Logo"
+                    width={300}
+                    height={300}
+                />
+                <h2 className="text-2xl font-bold">Connexion</h2>
+            </article>
             <Form {...form}>
-                <form action={formAction} className="space-y-8">
+                <form
+                    action={formAction}
+                    className={`space-y-8 ${isMobile ? 'w-[90%]' : 'w-[500px]'}`}
+                >
                     {formContent}
                 </form>
             </Form>

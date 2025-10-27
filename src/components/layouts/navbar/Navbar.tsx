@@ -5,8 +5,10 @@ import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import useMobile from '@/hooks/useMobile'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-export const Navbar = () => {
+export const Navbar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
+    const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
     const isMobile = useMobile()
     const [overlay, setOverlay] = useState<{
@@ -29,17 +31,13 @@ export const Navbar = () => {
 
     const dataNav = [
         {
-            label: "C'est quoi",
-            href: '/#projects',
+            label: 'Connexion',
+            href: '/login',
         },
 
         {
-            label: 'Nos services',
-            href: '/#services',
-        },
-        {
-            label: 'Contact',
-            href: '/#contact',
+            label: 'Créer un compte',
+            href: '/signup',
         },
     ]
 
@@ -85,55 +83,61 @@ export const Navbar = () => {
                 </>
             ) : (
                 <>
-                    <div className="relative">
-                        <button
-                            className="flex flex-col w-[2rem] h-[2rem] justify-between p-0 z-50"
-                            onClick={toggleMenu}
-                            aria-label="Menu"
-                        >
-                            <span className="relative w-[2rem] h-[0.25rem] rounded-[10px] bg-black" />
-                            <span className="relative w-[2rem] h-[0.25rem] rounded-[10px] bg-black" />
-                            <span className="relative w-[2rem] h-[0.25rem] rounded-[10px] bg-black" />
-                        </button>
+                    {isLoggedIn ? (
+                        <div className="relative">
+                            <button
+                                className="flex flex-col w-[2rem] h-[2rem] justify-between p-0 z-50"
+                                onClick={toggleMenu}
+                                aria-label="Menu"
+                            >
+                                <span className="relative w-[2rem] h-[0.25rem] rounded-[10px] bg-black" />
+                                <span className="relative w-[2rem] h-[0.25rem] rounded-[10px] bg-black" />
+                                <span className="relative w-[2rem] h-[0.25rem] rounded-[10px] bg-black" />
+                            </button>
 
-                        <div
-                            className={`fixed top-0 left-0 w-full h-full z-101 ${isOpen ? 'visible opacity-1' : 'opacity-0 invisible'}`}
-                            onClick={closeMenu}
-                        />
+                            <div
+                                className={`fixed top-0 left-0 w-full h-full z-101 ${isOpen ? 'visible opacity-1' : 'opacity-0 invisible'}`}
+                                onClick={closeMenu}
+                            />
 
-                        <nav
-                            className={`fixed top-0 w-full h-full bg-white z-102 flex flex-col ${isOpen ? 'right-0' : 'right-[-100%]'}`}
-                        >
-                            <div className="flex justify-between items-center p-1">
-                                <button
-                                    className="b-none bg-none p-[.5rem]"
-                                    onClick={closeMenu}
-                                    aria-label="Fermer le menu"
-                                >
-                                    <X />
-                                </button>
-                            </div>
-                            <div className="flex flex-col p-[2rem,1rem] gap-2">
-                                {dataNav.map((item, index) => (
-                                    <div key={index}>
-                                        <Link
-                                            href={item.href}
-                                            className="p-[1rem,0]"
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                triggerOverlay(
-                                                    item.label,
-                                                    item.href
-                                                )
-                                            }}
-                                        >
-                                            {item.label}
-                                        </Link>
-                                    </div>
-                                ))}
-                            </div>
-                        </nav>
-                    </div>
+                            <nav
+                                className={`fixed top-0 w-full h-full bg-white z-102 flex flex-col ${isOpen ? 'right-0' : 'right-[-100%]'}`}
+                            >
+                                <div className="flex justify-between items-center p-1">
+                                    <button
+                                        className="b-none bg-none p-[.5rem]"
+                                        onClick={closeMenu}
+                                        aria-label="Fermer le menu"
+                                    >
+                                        <X />
+                                    </button>
+                                </div>
+                                <div className="flex flex-col p-[2rem,1rem] gap-2">
+                                    <Link
+                                        href={dataNav[0]?.href}
+                                        className="p-[1rem,0]"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            triggerOverlay(
+                                                dataNav[0]?.label,
+                                                dataNav[0]?.href
+                                            )
+                                        }}
+                                    >
+                                        {dataNav[0]?.label}
+                                    </Link>
+                                </div>
+                            </nav>
+                        </div>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => router.push(dataNav[0]?.href)}
+                            >
+                                {dataNav[0]?.label}
+                            </button>
+                        </>
+                    )}
                 </>
             )}
 

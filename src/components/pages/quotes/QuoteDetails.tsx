@@ -8,6 +8,7 @@ const PDFViewer = dynamic(
 import { QuotePdf } from '@/components/pdf/QuotePdf'
 import { useAuth } from '@/contexts/useAuth'
 import { finalizeQuote } from '@/app/(app)/quotes/action'
+import { useRouter } from 'next/navigation'
 
 export const QuoteDetails = ({
     quote,
@@ -18,6 +19,7 @@ export const QuoteDetails = ({
     items?: QuoteItems[]
     client?: Clients
 }) => {
+    const router = useRouter()
     const { profile } = useAuth()
     const [showConfirm, setShowConfirm] = useState(false)
 
@@ -63,6 +65,14 @@ export const QuoteDetails = ({
                         onClick={() => setShowConfirm(true)}
                     >
                         Finaliser le devis
+                    </button>
+                )}
+                {isDraft && (
+                    <button
+                        className="border px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-800"
+                        onClick={() => router.push(`/quotes/${quote.id}/edit`)}
+                    >
+                        Modifier le devis
                     </button>
                 )}
 

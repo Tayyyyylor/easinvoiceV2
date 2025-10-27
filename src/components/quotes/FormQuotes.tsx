@@ -42,11 +42,14 @@ const createQuoteSchema = z.object({
 })
 type CreateQuoteValues = z.infer<typeof createQuoteSchema>
 
+interface FormQuotesProps {
+    clients: Clients[]
+    initialData?: { quote: Quotes; items: QuoteItems[] }
+}
 export const FormQuotes = ({
     clients: initialClients,
-}: {
-    clients: Clients[]
-}) => {
+    initialData,
+}: FormQuotesProps) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
     const [selectValue, setSelectValue] = useState('')
     const [clients, setClients] = useState(initialClients)
@@ -54,8 +57,14 @@ export const FormQuotes = ({
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
         defaultValues: {
-            terms: '',
-            lines: [
+            terms: initialData?.quote.terms || '',
+            lines: initialData?.items.map((item) => ({
+                description: item.description,
+                type: item.type,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                tax_rate: item.tax_rate,
+            })) || [
                 {
                     description: '',
                     type: 'service',
@@ -65,10 +74,10 @@ export const FormQuotes = ({
                 },
             ],
             currency: 'EUR',
-            validity_days: 1,
-            name: '',
-            description: '',
-            client_id: undefined,
+            validity_days: initialData?.quote.validity_days || 1,
+            name: initialData?.quote.name || '',
+            description: initialData?.quote.description || '',
+            client_id: initialData?.quote.client_id || undefined,
             tva_non_applicable: false,
         },
     })
@@ -93,7 +102,7 @@ export const FormQuotes = ({
     return (
         <main className="mt-10 flex flex-col gap-5 items-center justify-center">
             <h2 className="text-2xl font-bold text-center mb-20">
-                Créer un devis
+                {initialData?.quote.id ? 'Modifier' : 'Créer'} un devis
             </h2>
             <Form {...form}>
                 <form
@@ -248,7 +257,9 @@ export const FormQuotes = ({
                         append={append}
                         tvaNonApplicable={tvaNonApplicable}
                     />
-                    <Button type="submit">Créer le devis</Button>
+                    <Button type="submit">
+                        {initialData?.quote.id ? 'Modifier' : 'Créer'} le devis
+                    </Button>
                 </form>
             </Form>
         </main>

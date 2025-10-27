@@ -10,10 +10,8 @@ import {
     generateDocumentNumber,
 } from '@/helpers/formDataParser'
 
-export async function createQuote(formData: FormData) {
-    const { user, supabase } = await getAuthenticatedUser()
-
-    // Support payload JSON pour valeurs issues de RHF
+// Fonction commune pour extraire les données du formulaire
+function parseQuoteFormData(formData: FormData) {
     let payload: QuoteFormPayload | null = null
     if (formData.get('payload')) {
         try {
@@ -40,38 +38,45 @@ export async function createQuote(formData: FormData) {
             formData.get('client_id') ?? payload?.client_id?.toString() ?? null
         ) ?? null
 
-    // Validation serveur: client obligatoire
-    if (!client_id) {
+    const linesArr = parseLines(formData, payload)
+    const { subtotal_cents, tax_cents, total_cents } = calculateTotals(linesArr)
+
+    return {
+        client_id,
+        name: formData.get('name') as string,
+        validity_days: validityDays,
+        description,
+        currency,
+        terms,
+        subtotal_cents,
+        tax_cents,
+        total_cents,
+        linesArr,
+    }
+}
+
+export async function createQuote(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const data = parseQuoteFormData(formData)
+
+    if (!data.client_id) {
         console.error('createQuote validation error: client_id is required')
         redirect('/error')
     }
 
-    // Parse les lignes du formulaire
-    const linesArr = parseLines(formData, payload)
-
-    if (linesArr.length === 0) {
-        // pas de lignes => erreur de validation
+    if (data.linesArr.length === 0) {
         redirect('/error')
     }
-
-    // Calcule les totaux
-    const { subtotal_cents, tax_cents, total_cents } = calculateTotals(linesArr)
 
     // insert quote
     const { data: insertedQuote, error: qErr } = await supabase
         .from('quotes')
         .insert({
             owner_id: user.id,
-            client_id,
-            name: formData.get('name') as string,
-            validity_days: validityDays,
             status: 'draft',
-            description,
-            currency,
-            terms,
-            subtotal_cents,
-            tax_cents,
-            total_cents,
+            ...data,
+            linesArr: undefined, // exclure linesArr
         })
         .select('id')
         .single()
@@ -83,8 +88,8 @@ export async function createQuote(formData: FormData) {
 
     const quoteId = (insertedQuote as QuoteFormPayload).id
 
-    // prepare items for insertion
-    const itemsToInsert = linesArr.map((l) => ({
+    // Insert quote items
+    const itemsToInsert = data.linesArr.map((l) => ({
         quote_id: quoteId,
         description: l.description,
         type: l.type,
@@ -94,7 +99,6 @@ export async function createQuote(formData: FormData) {
         total_price: l.total_price,
     }))
 
-    // insert quote items
     const { error: itemsErr } = await supabase
         .from('quote_items')
         .insert(itemsToInsert)
@@ -117,41 +121,77 @@ export async function updateQuote(formData: FormData) {
         redirect('/error')
     }
 
-    const { data: quote, error: fetchError } = await supabase
+    // Vérifier que le devis existe et appartient à l'utilisateur
+    const { data: existingQuote, error: fetchError } = await supabase
         .from('quotes')
-        .select('*')
+        .select('id, status')
         .eq('id', quoteId)
         .eq('owner_id', user.id)
         .single()
 
-    if (fetchError || !quote) {
+    if (fetchError || !existingQuote) {
         console.error('Quote not found or unauthorized', fetchError)
         redirect('/error')
     }
 
-    const { data: items, error: itemsError } = await supabase
-        .from('quote_items')
-        .select('*')
-        .eq('quote_id', quoteId)
-        .order('id', { ascending: true })
+    const data = parseQuoteFormData(formData)
 
-    if (itemsError || !items) {
-        console.error('Invoice items not found or unauthorized', itemsError)
+    if (!data.client_id) {
+        console.error('updateQuote validation error: client_id is required')
         redirect('/error')
     }
 
-    const { data: client, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', quote.client_id)
+    if (data.linesArr.length === 0) {
+        redirect('/error')
+    }
+
+    // Mettre à jour le devis
+    const { error: updateError } = await supabase
+        .from('quotes')
+        .update({
+            ...data,
+            linesArr: undefined, // exclure linesArr
+        })
+        .eq('id', quoteId)
         .eq('owner_id', user.id)
-        .single()
 
-    if (clientError || !client) {
-        console.error('createInvoice validation error: client_id is required')
+    if (updateError) {
+        console.error('quote update error', updateError)
         redirect('/error')
     }
 
+    // Supprimer les anciennes lignes et insérer les nouvelles
+    const { error: deleteError } = await supabase
+        .from('quote_items')
+        .delete()
+        .eq('quote_id', quoteId)
+
+    if (deleteError) {
+        console.error('quote items delete error', deleteError)
+        redirect('/error')
+    }
+
+    const itemsToInsert = data.linesArr.map((l) => ({
+        quote_id: quoteId,
+        description: l.description,
+        type: l.type,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        tax_rate: l.tax_rate,
+        total_price: l.total_price,
+    }))
+
+    const { error: itemsErr } = await supabase
+        .from('quote_items')
+        .insert(itemsToInsert)
+
+    if (itemsErr) {
+        console.error('quote items insert error', itemsErr)
+        redirect('/error')
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/quotes')
     revalidatePath(`/quotes/${quoteId}`)
     redirect(`/quotes/${quoteId}`)
 }

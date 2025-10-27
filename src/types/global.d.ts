@@ -30,6 +30,8 @@ interface Clients {
     type: string
 }
 
+type ClientFormPayload = Partial<Clients>
+
 interface BaseDocument {
     id: number
     status: 'draft' | 'published'

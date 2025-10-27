@@ -2,6 +2,7 @@
 import {
     createAClient,
     createAClientAndReturn,
+    updateClient,
 } from '@/app/(app)/clients/action'
 import { zodResolver } from '@hookform/resolvers/zod'
 import React, { useState } from 'react'
@@ -30,30 +31,33 @@ const createClientSchema = z.object({
 type CreateClientValues = z.infer<typeof createClientSchema>
 
 export const FormClients = ({
+    initialData,
     standalone = true,
     onSuccess,
 }: {
     standalone?: boolean
     onSuccess?: (client: Clients) => void
+    initialData?: Clients
 }) => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const form = useForm<CreateClientValues>({
         resolver: zodResolver(createClientSchema),
         defaultValues: {
-            type: 'individual',
-            email: '',
-            firstname: '',
-            lastname: '',
-            company_name: '',
-            address: '',
-            additional_address: '',
-            city: '',
-            zipcode: '',
-            country: '',
-            phone: '',
-            siret: '',
-            naf_code: '',
+            type:
+                (initialData?.type as 'company' | 'individual') || 'individual',
+            email: initialData?.email || '',
+            firstname: initialData?.firstname || '',
+            lastname: initialData?.lastname || '',
+            company_name: initialData?.company_name || '',
+            address: initialData?.address || '',
+            additional_address: initialData?.additional_address || '',
+            city: initialData?.city || '',
+            zipcode: initialData?.zipcode || '',
+            country: initialData?.country || '',
+            phone: initialData?.phone || '',
+            siret: initialData?.siret || '',
+            naf_code: initialData?.naf_code || '',
         },
     })
 
@@ -73,7 +77,7 @@ export const FormClients = ({
     const formContent = (
         <main className="flex flex-col gap-5 items-center justify-center">
             <h2 className="text-2xl font-bold text-center mb-20">
-                Créer un client
+                {initialData?.id ? 'Modifier' : 'Créer'} un client
             </h2>
             <Select
                 label="Type de client"
@@ -202,9 +206,29 @@ export const FormClients = ({
     return (
         <Form {...form}>
             {standalone ? (
-                <form className="space-y-8" action={createAClient}>
+                <form
+                    className="space-y-8"
+                    action={async (formData) => {
+                        // Si on est en mode édition, ajouter le payload et l'ID
+                        if (initialData?.id) {
+                            const values = form.getValues()
+                            formData.append('payload', JSON.stringify(values))
+                            formData.append(
+                                'client_id',
+                                initialData.id.toString()
+                            )
+                            await updateClient(formData)
+                        } else {
+                            await createAClient(formData)
+                        }
+                    }}
+                >
                     {formContent}
-                    <Button type="submit">Créer le client</Button>
+                    <Button type="submit">
+                        {initialData?.id
+                            ? 'Modifier le client'
+                            : 'Créer le client'}
+                    </Button>
                 </form>
             ) : (
                 <form className="space-y-8" action={handleSubmitModal}>

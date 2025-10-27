@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { Form } from '../ui/form'
 import { Button } from '../ui/button'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createQuote } from '@/app/(app)/quotes/action'
+import { createQuote, updateQuote } from '@/app/(app)/quotes/action'
 import { Formfield } from '../atoms/Formfield'
 import { FormClients } from '../clients/FormClients'
 import { Select } from '../atoms/Select'
@@ -53,6 +53,7 @@ export const FormQuotes = ({
     const [showNewClientForm, setShowNewClientForm] = useState(false)
     const [selectValue, setSelectValue] = useState('')
     const [clients, setClients] = useState(initialClients)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const form = useForm<CreateQuoteValues>({
         resolver: zodResolver(createQuoteSchema),
@@ -108,19 +109,42 @@ export const FormQuotes = ({
                 <form
                     className="space-y-8 w-full max-w-4xl"
                     action={async (formData) => {
-                        // Empêcher la soumission si aucun client n'est sélectionné
-                        const values = form.getValues()
-                        if (!values.client_id) {
-                            form.setError('client_id', {
-                                type: 'required',
-                                message: 'Veuillez sélectionner un client',
-                            })
-                            return
-                        }
+                        // Empêcher la double soumission
+                        if (isSubmitting) return
+                        setIsSubmitting(true)
 
-                        // Remettre le payload (inclut client_id et lines)
-                        formData.append('payload', JSON.stringify(values))
-                        await createQuote(formData)
+                        try {
+                            // Empêcher la soumission si aucun client n'est sélectionné
+                            const values = form.getValues()
+                            if (!values.client_id) {
+                                form.setError('client_id', {
+                                    type: 'required',
+                                    message: 'Veuillez sélectionner un client',
+                                })
+                                setIsSubmitting(false)
+                                return
+                            }
+
+                            // Remettre le payload (inclut client_id et lines)
+                            formData.append('payload', JSON.stringify(values))
+
+                            // Ajouter l'ID du devis si on est en mode édition
+                            if (initialData?.quote.id) {
+                                formData.append(
+                                    'quote_id',
+                                    initialData.quote.id.toString()
+                                )
+                                await updateQuote(formData)
+                            } else {
+                                await createQuote(formData)
+                            }
+                        } catch (error) {
+                            console.error(
+                                'Erreur lors de la soumission:',
+                                error
+                            )
+                            setIsSubmitting(false)
+                        }
                     }}
                 >
                     <article className="space-y-2">
@@ -257,8 +281,10 @@ export const FormQuotes = ({
                         append={append}
                         tvaNonApplicable={tvaNonApplicable}
                     />
-                    <Button type="submit">
-                        {initialData?.quote.id ? 'Modifier' : 'Créer'} le devis
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting
+                            ? 'En cours...'
+                            : `${initialData?.quote.id ? 'Modifier' : 'Créer'} le devis`}
                     </Button>
                 </form>
             </Form>

@@ -10,10 +10,8 @@ import {
     generateDocumentNumber,
 } from '@/helpers/formDataParser'
 
-export async function createInvoice(formData: FormData) {
-    const { user, supabase } = await getAuthenticatedUser()
-
-    // Support payload JSON pour valeurs issues de RHF
+// Fonction commune pour extraire les données du formulaire
+function parseInvoiceFormData(formData: FormData) {
     let payload: InvoiceFormPayload | null = null
     if (formData.get('payload')) {
         try {
@@ -33,23 +31,6 @@ export async function createInvoice(formData: FormData) {
         toNumber(
             formData.get('client_id') ?? payload?.client_id?.toString() ?? null
         ) ?? null
-
-    if (!client_id) {
-        console.error('createInvoice validation error: client_id is required')
-        redirect('/error')
-    }
-
-    // Parse les lignes du formulaire
-    const linesArr = parseLines(formData, payload)
-
-    if (linesArr.length === 0) {
-        // pas de lignes => erreur de validation
-        redirect('/error')
-    }
-
-    // Calcule les totaux
-    const { subtotal_cents, tax_cents, total_cents } = calculateTotals(linesArr)
-
     const interest_rate =
         toNumber(
             formData.get('interest_rate') ??
@@ -57,23 +38,47 @@ export async function createInvoice(formData: FormData) {
                 null
         ) ?? null
 
+    const linesArr = parseLines(formData, payload)
+    const { subtotal_cents, tax_cents, total_cents } = calculateTotals(linesArr)
+
+    return {
+        client_id,
+        name: formData.get('name') as string,
+        description,
+        currency,
+        terms,
+        subtotal_cents,
+        tax_cents,
+        total_cents,
+        payment_date: formData.get('payment_date') as string,
+        payment_method: formData.get('payment_method') as string,
+        interest_rate,
+        linesArr,
+    }
+}
+
+export async function createInvoice(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const data = parseInvoiceFormData(formData)
+
+    if (!data.client_id) {
+        console.error('createInvoice validation error: client_id is required')
+        redirect('/error')
+    }
+
+    if (data.linesArr.length === 0) {
+        redirect('/error')
+    }
+
     // insert invoice
     const { data: insertedInvoice, error: qErr } = await supabase
         .from('invoices')
         .insert({
             owner_id: user.id,
-            client_id,
-            name: formData.get('name') as string,
             status: 'draft',
-            description,
-            currency,
-            terms,
-            subtotal_cents,
-            tax_cents,
-            total_cents,
-            payment_date: formData.get('payment_date') as string,
-            payment_method: formData.get('payment_method') as string,
-            interest_rate,
+            ...data,
+            linesArr: undefined, // exclure linesArr
         })
         .select('id')
         .single()
@@ -85,8 +90,8 @@ export async function createInvoice(formData: FormData) {
 
     const invoiceId = (insertedInvoice as InvoiceFormPayload).id
 
-    // prepare items for insertion
-    const itemsToInsert = linesArr.map((l) => ({
+    // Insert invoice items
+    const itemsToInsert = data.linesArr.map((l) => ({
         invoice_id: invoiceId,
         description: l.description,
         type: l.type,
@@ -96,7 +101,6 @@ export async function createInvoice(formData: FormData) {
         total_price: l.total_price,
     }))
 
-    // insert invoice items
     const { error: itemsErr } = await supabase
         .from('invoice_items')
         .insert(itemsToInsert)
@@ -119,41 +123,77 @@ export async function updateInvoice(formData: FormData) {
         redirect('/error')
     }
 
-    const { data: invoice, error: fetchError } = await supabase
+    // Vérifier que la facture existe et appartient à l'utilisateur
+    const { data: existingInvoice, error: fetchError } = await supabase
         .from('invoices')
-        .select('*')
+        .select('id, status')
         .eq('id', invoiceId)
         .eq('owner_id', user.id)
         .single()
 
-    if (fetchError || !invoice) {
+    if (fetchError || !existingInvoice) {
         console.error('Invoice not found or unauthorized', fetchError)
         redirect('/error')
     }
 
-    const { data: items, error: itemsError } = await supabase
-        .from('invoice_items')
-        .select('*')
-        .eq('invoice_id', invoiceId)
-        .order('id', { ascending: true })
+    const data = parseInvoiceFormData(formData)
 
-    if (itemsError || !items) {
-        console.error('Invoice items not found or unauthorized', itemsError)
+    if (!data.client_id) {
+        console.error('updateInvoice validation error: client_id is required')
         redirect('/error')
     }
 
-    const { data: client, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', invoice.client_id)
+    if (data.linesArr.length === 0) {
+        redirect('/error')
+    }
+
+    // Mettre à jour la facture
+    const { error: updateError } = await supabase
+        .from('invoices')
+        .update({
+            ...data,
+            linesArr: undefined, // exclure linesArr
+        })
+        .eq('id', invoiceId)
         .eq('owner_id', user.id)
-        .single()
 
-    if (clientError || !client) {
-        console.error('createInvoice validation error: client_id is required')
+    if (updateError) {
+        console.error('invoice update error', updateError)
         redirect('/error')
     }
 
+    // Supprimer les anciennes lignes et insérer les nouvelles
+    const { error: deleteError } = await supabase
+        .from('invoice_items')
+        .delete()
+        .eq('invoice_id', invoiceId)
+
+    if (deleteError) {
+        console.error('invoice items delete error', deleteError)
+        redirect('/error')
+    }
+
+    const itemsToInsert = data.linesArr.map((l) => ({
+        invoice_id: invoiceId,
+        description: l.description,
+        type: l.type,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        tax_rate: l.tax_rate,
+        total_price: l.total_price,
+    }))
+
+    const { error: itemsErr } = await supabase
+        .from('invoice_items')
+        .insert(itemsToInsert)
+
+    if (itemsErr) {
+        console.error('invoice items insert error', itemsErr)
+        redirect('/error')
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/invoices')
     revalidatePath(`/invoices/${invoiceId}`)
     redirect(`/invoices/${invoiceId}`)
 }

@@ -1,20 +1,33 @@
 'use client'
 import React, { useState } from 'react'
-import { Navbar } from '../navbar/Navbar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import useMobile from '@/hooks/useMobile'
+
+const dataNav = [
+    {
+        label: 'Connexion',
+        href: '/login',
+    },
+
+    {
+        label: 'Créer un compte',
+        href: '/signup',
+    },
+]
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
-    const [isProfileOpen, setIsProfileOpen] = useState(false)
     const router = useRouter()
+    const isMobile = useMobile()
+    const [isProfileOpen, setIsProfileOpen] = useState(false)
 
     const handleProfileClick = () => {
         setIsProfileOpen(!isProfileOpen)
     }
     return (
-        <header className="p-1 flex items-center sticky top-0 left-0 w-full z-1000 justify-between bg-white border-b">
+        <header className="p-2 flex items-center sticky top-0 left-0 w-full z-1000 justify-between bg-white border-b">
             <Link href="/">
                 <h1>
                     <Image
@@ -25,28 +38,31 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                     />
                 </h1>
             </Link>
-            <div className="flex items-center gap-2">
-                <Navbar />
-            </div>
-            {!isLoggedIn ? (
+            {!isLoggedIn && (
                 <div className="flex items-center gap-2">
-                    <Button variant="default" asChild>
-                        <Link href="/signup">Signup</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                        <Link href="/login">Login</Link>
-                    </Button>
+                    {!isMobile ? (
+                        <nav className="flex gap-2 items-center">
+                            {dataNav.map((item, index) => (
+                                <div key={index}>
+                                    <Link href={item.href} className="">
+                                        {item.label}
+                                    </Link>
+                                </div>
+                            ))}
+                        </nav>
+                    ) : (
+                        <button onClick={() => router.push(dataNav[0]?.href)}>
+                            {dataNav[0]?.label}
+                        </button>
+                    )}
                 </div>
-            ) : (
+            )}
+
+            {isLoggedIn && (
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild>
                         <Link href="/dashboard">Dashboard</Link>
                     </Button>
-                    <form action="/auth/signout" method="post">
-                        <Button variant="outline" type="submit">
-                            Logout
-                        </Button>
-                    </form>
                     <Button variant="outline" onClick={handleProfileClick}>
                         <Image
                             src="/user-default.png"

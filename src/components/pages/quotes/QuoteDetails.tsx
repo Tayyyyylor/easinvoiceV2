@@ -40,9 +40,9 @@ export const QuoteDetails = ({
     const isDraft = quote.status === 'draft'
 
     return (
-        <div className="p-6 space-y-4">
-            <div className="flex items-center gap-3">
-                <h1 className="text-xl">Devis #{quote.id}</h1>
+        <main className="p-6 space-y-4 max-w-4xl mx-auto">
+            <section className="flex items-center gap-3">
+                <h2 className="text-xl">Devis #{quote.id}</h2>
                 <span
                     className={`px-3 py-1 rounded text-sm ${
                         isDraft
@@ -52,7 +52,7 @@ export const QuoteDetails = ({
                 >
                     {isDraft ? 'Provisoire' : 'Finalisé'}
                 </span>
-            </div>
+            </section>
 
             <div className="space-x-3">
                 <button className="border px-3 py-1 rounded" onClick={download}>
@@ -123,6 +123,6 @@ export const QuoteDetails = ({
                     />
                 </PDFViewer>
             </div>
-        </div>
+        </main>
     )
 }

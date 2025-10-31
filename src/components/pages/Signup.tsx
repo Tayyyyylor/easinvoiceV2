@@ -8,6 +8,8 @@ import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import Link from 'next/link'
 import { Formfield } from '../atoms/Formfield'
+import Image from 'next/image'
+import useMobile from '@/hooks/useMobile'
 
 const formSchema = z
     .object({
@@ -37,6 +39,7 @@ const formSchema = z
 type SignupValues = z.infer<typeof formSchema>
 
 const Signup = () => {
+    const isMobile = useMobile()
     const [state, formAction] = useActionState(signup, null)
 
     const form = useForm<SignupValues>({
@@ -69,8 +72,7 @@ const Signup = () => {
         },
     ]
     const formContent = (
-        <>
-            <h2>Inscription</h2>
+        <section className="flex flex-col gap-4 border p-10 rounded-lg w-full">
             {state?.error && (
                 <div
                     className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
@@ -91,13 +93,36 @@ const Signup = () => {
             >
                 {form.formState.isSubmitting ? 'Inscription...' : "S'inscrire"}
             </Button>
-        </>
+            <p className="text-sm text-gray-500 mt-4">
+                En vous inscrivant, vous acceptez les{' '}
+                <Link href="/terms" className="text-blue-500">
+                    Conditions d&apos;utilisation
+                </Link>{' '}
+                et la{' '}
+                <Link href="/privacy" className="text-blue-500">
+                    Politique de confidentialité
+                </Link>
+                .
+            </p>
+        </section>
     )
 
     return (
-        <main className="flex flex-col items-center justify-center h-screen">
+        <main className="flex flex-col items-center justify-center h-screen w-full">
+            <article className="flex flex-col items-center justify-center gap-4 mb-15">
+                <Image
+                    src="/logo_black.png"
+                    alt="Logo"
+                    width={300}
+                    height={300}
+                />
+                <h2 className="text-2xl font-bold">Inscription</h2>
+            </article>
             <Form {...form}>
-                <form action={formAction} className="space-y-8">
+                <form
+                    action={formAction}
+                    className={`space-y-8 ${isMobile ? 'w-[90%]' : 'w-[500px]'}`}
+                >
                     {formContent}
                 </form>
             </Form>

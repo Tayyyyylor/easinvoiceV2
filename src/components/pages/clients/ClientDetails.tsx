@@ -7,9 +7,9 @@ export const ClientDetails = ({ client }: { client: Clients }) => {
     console.log(client)
     return (
         <main className="flex-col h-screen gap-4">
-            <h1 className="text-2xl font-bold text-center">Client Details</h1>
+            <h2 className="text-2xl font-bold text-center">Client Details</h2>
             <article className="flex flex-col gap-4">
-                <h2 className="text-lg font-bold">Informations</h2>
+                <h3 className="text-lg font-bold">Informations</h3>
                 <p>
                     {client.firstname} {client.lastname}
                 </p>

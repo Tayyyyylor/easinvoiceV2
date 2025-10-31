@@ -40,9 +40,9 @@ export const InvoiceDetails = ({
     const isDraft = invoice.status === 'draft'
 
     return (
-        <div className="p-6 space-y-4">
-            <div className="flex items-center gap-3">
-                <h1 className="text-xl">
+        <main className="p-6 space-y-4 max-w-4xl mx-auto">
+            <section className="flex items-center gap-3">
+                <h2 className="text-xl">
                     {isDraft ? (
                         `Facture #${invoice.id}`
                     ) : (
@@ -53,7 +53,7 @@ export const InvoiceDetails = ({
                             </span>
                         </span>
                     )}
-                </h1>
+                </h2>
                 <span
                     className={`px-3 py-1 rounded text-sm ${
                         isDraft
@@ -63,7 +63,7 @@ export const InvoiceDetails = ({
                 >
                     {isDraft ? 'Provisoire' : 'Finalisée'}
                 </span>
-            </div>
+            </section>
 
             <div className="space-x-3">
                 <button className="border px-3 py-1 rounded" onClick={download}>
@@ -137,6 +137,6 @@ export const InvoiceDetails = ({
                     />
                 </PDFViewer>
             </div>
-        </div>
+        </main>
     )
 }

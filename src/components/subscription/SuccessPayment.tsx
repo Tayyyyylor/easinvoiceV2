@@ -7,9 +7,9 @@ export default function SuccessPayment() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background">
             <div className="max-w-md w-full p-8 space-y-4 text-center">
-                <h1 className="text-2xl font-bold text-foreground">
+                <h2 className="text-2xl font-bold text-foreground">
                     Paiement réussi !
-                </h1>
+                </h2>
                 <p className="text-muted-foreground">
                     {isLoading
                         ? 'Vérification de votre abonnement...'

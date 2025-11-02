@@ -27,7 +27,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         setIsProfileOpen(!isProfileOpen)
     }
     return (
-        <header className="p-2 flex items-center sticky top-0 left-0 w-full z-1000 justify-between bg-white border-b">
+        <header className="p-2 flex items-center w-full justify-between bg-white">
             <Link href="/">
                 <h1>
                     <Image
@@ -43,27 +43,39 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                     {!isMobile ? (
                         <nav className="flex gap-2 items-center">
                             {dataNav.map((item, index) => (
-                                <div key={index}>
+                                <Button
+                                    key={index}
+                                    className={`${index === 0 ? 'bg-mainBlue text-white hover:bg-mainBlueLight' : 'bg-white text-mainBlue border border-mainBlue'}`}
+                                >
                                     <Link href={item.href} className="">
                                         {item.label}
                                     </Link>
-                                </div>
+                                </Button>
                             ))}
                         </nav>
                     ) : (
-                        <button onClick={() => router.push(dataNav[0]?.href)}>
+                        <Button
+                            onClick={() => router.push(dataNav[0]?.href)}
+                            className="bg-mainBlue text-white hover:bg-mainBlueLight"
+                        >
                             {dataNav[0]?.label}
-                        </button>
+                        </Button>
                     )}
                 </div>
             )}
 
             {isLoggedIn && (
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" asChild>
+                    <Button
+                        asChild
+                        className="bg-white text-mainBlue border border-mainBlue"
+                    >
                         <Link href="/dashboard">Dashboard</Link>
                     </Button>
-                    <Button variant="outline" onClick={handleProfileClick}>
+                    <Button
+                        onClick={handleProfileClick}
+                        className="bg-lightGray hover:bg-darkGray cursor-pointer"
+                    >
                         <Image
                             src="/user-default.png"
                             alt="Profile"

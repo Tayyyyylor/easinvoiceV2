@@ -46,7 +46,7 @@ export default async function RootLayout({
     return (
         <html lang="en">
             <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} antialiased bg-backgroundLight`}
             >
                 {displayHeader && <Header isLoggedIn={!!user} />}
                 {children}

@@ -39,7 +39,10 @@ export const DetailsTemplate = ({
                     currentFilter={filter}
                     onFilterChange={setFilter}
                 />
-                <Button onClick={() => router.push(`/${link}/create`)}>
+                <Button
+                    onClick={() => router.push(`/${link}/create`)}
+                    className="bg-mainBlue text-white hover:bg-mainBlueLight cursor-pointer"
+                >
                     {titleButton[3]}
                 </Button>
             </article>

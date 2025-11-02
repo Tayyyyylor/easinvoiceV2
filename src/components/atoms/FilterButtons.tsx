@@ -21,7 +21,7 @@ export const FilterButtons = <T extends string>({
     const getButtonClass = (value: T) => {
         const baseClass = 'border px-3 py-1 rounded transition-colors'
         return currentFilter === value
-            ? `${baseClass} bg-black text-white`
+            ? `${baseClass} bg-darkGray text-white`
             : `${baseClass} hover:bg-gray-100`
     }
 
@@ -30,7 +30,7 @@ export const FilterButtons = <T extends string>({
             {options.map((option) => (
                 <button
                     key={option.value}
-                    className={getButtonClass(option.value)}
+                    className={getButtonClass(option.value) + ' cursor-pointer'}
                     onClick={() => onFilterChange(option.value)}
                 >
                     {option.label}

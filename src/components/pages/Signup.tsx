@@ -75,7 +75,7 @@ const Signup = () => {
         <section className="flex flex-col gap-4 border p-10 rounded-lg w-full">
             {state?.error && (
                 <div
-                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                    className="text-white px-4 py-3 rounded relative"
                     role="alert"
                 >
                     <span className="block sm:inline">{state.error}</span>
@@ -89,17 +89,17 @@ const Signup = () => {
                 disabled={
                     !form.formState.isValid || form.formState.isSubmitting
                 }
-                className="w-full"
+                className="w-full bg-mainBlue text-white hover:bg-mainBlueLight"
             >
                 {form.formState.isSubmitting ? 'Inscription...' : "S'inscrire"}
             </Button>
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-sm text-gray-500 mt-4 text-center">
                 En vous inscrivant, vous acceptez les{' '}
-                <Link href="/terms" className="text-blue-500">
+                <Link href="/terms" className="text-mainBlueLight">
                     Conditions d&apos;utilisation
                 </Link>{' '}
                 et la{' '}
-                <Link href="/privacy" className="text-blue-500">
+                <Link href="/privacy" className="text-mainBlueLight">
                     Politique de confidentialité
                 </Link>
                 .
@@ -116,7 +116,9 @@ const Signup = () => {
                     width={300}
                     height={300}
                 />
-                <h2 className="text-2xl font-bold">Inscription</h2>
+                <h2 className="text-2xl font-bold text-mainBlue">
+                    Inscription
+                </h2>
             </article>
             <Form {...form}>
                 <form
@@ -128,7 +130,7 @@ const Signup = () => {
             </Form>
             <p className="text-sm text-gray-500 mt-4">
                 Vous avez déjà un compte ?
-                <Link href="/login" className="text-blue-500">
+                <Link href="/login" className="text-mainBlueLight">
                     Se connecter
                 </Link>
             </p>

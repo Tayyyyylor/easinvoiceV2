@@ -27,7 +27,7 @@ interface Clients {
     siret: string
     phone: string
     tva: number
-    type: string
+    type: 'company' | 'individual'
 }
 
 type ClientFormPayload = Partial<Clients>

@@ -36,7 +36,7 @@ export default function Dashboard({
                     Passez Premium !
                 </Button>
             )}
-            <div className="relative flex flex-row items-center justify-center gap-8 w-full">
+            <div className="relative flex flex-col md:flex-row items-center justify-center gap-8 w-full">
                 <DashboardCard
                     title="Mes devis"
                     buttonLabel="Créer un devis"

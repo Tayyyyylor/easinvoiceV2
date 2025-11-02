@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from './ui/button'
 import { DetailsCard } from './atoms/DetailsCard'
+import { FilterButtons, FilterOption } from './atoms/FilterButtons'
 
 interface DetailsTemplateProps {
     titleButton: string[]
@@ -19,41 +20,25 @@ export const DetailsTemplate = ({
     const router = useRouter()
     const [filter, setFilter] = useState<FilterStatus>('all')
 
+    const filterOptions: FilterOption<FilterStatus>[] = [
+        { value: 'all', label: titleButton[0] },
+        { value: 'draft', label: titleButton[1] },
+        { value: 'published', label: titleButton[2] },
+    ]
+
     const filteredData = useMemo(() => {
         if (filter === 'all') return data
         return data.filter((dt) => dt.status === filter)
     }, [data, filter])
 
-    const getButtonClass = (status: FilterStatus) => {
-        const baseClass = 'border px-3 py-1 rounded transition-colors'
-        return filter === status
-            ? `${baseClass} bg-black text-white`
-            : `${baseClass} hover:bg-gray-100`
-    }
-
     return (
         <main className="flex flex-col gap-4 max-w-4xl mx-auto p-4 border h-screen">
-            <article className="flex gap-2 justify-between items-center">
-                <div className="flex gap-2">
-                    <button
-                        className={getButtonClass('all')}
-                        onClick={() => setFilter('all')}
-                    >
-                        {titleButton[0]}
-                    </button>
-                    <button
-                        className={getButtonClass('draft')}
-                        onClick={() => setFilter('draft')}
-                    >
-                        {titleButton[1]}
-                    </button>
-                    <button
-                        className={getButtonClass('published')}
-                        onClick={() => setFilter('published')}
-                    >
-                        {titleButton[2]}
-                    </button>
-                </div>
+            <article className="flex gap-2 justify-between items-center flex-col md:flex-row">
+                <FilterButtons
+                    options={filterOptions}
+                    currentFilter={filter}
+                    onFilterChange={setFilter}
+                />
                 <Button onClick={() => router.push(`/${link}/create`)}>
                     {titleButton[3]}
                 </Button>

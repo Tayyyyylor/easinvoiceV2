@@ -33,9 +33,9 @@ export const ItemsLineForm = ({
             {fields.map((f, i) => (
                 <div
                     key={f.id}
-                    className="grid grid-cols-12 gap-2 items-end border rounded p-3"
+                    className="flex flex-col md:grid md:grid-cols-12 gap-2 md:items-end border rounded p-3"
                 >
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                         <Formfield
                             form={form}
                             name={`lines.${i}.description`}
@@ -43,7 +43,7 @@ export const ItemsLineForm = ({
                             placeholder="Ex: Intégration"
                         />
                     </div>
-                    <div className="col-span-2 border rounded p-2">
+                    <div className="md:col-span-2 border rounded p-2">
                         <Select
                             label="Type"
                             id={`lines.${i}.type`}
@@ -58,7 +58,7 @@ export const ItemsLineForm = ({
                         />
                     </div>
 
-                    <div className="col-span-1">
+                    <div className="md:col-span-2">
                         <Formfield
                             form={form}
                             name={`lines.${i}.quantity`}
@@ -66,7 +66,7 @@ export const ItemsLineForm = ({
                             placeholder="1"
                         />
                     </div>
-                    <div className="col-span-2">
+                    <div className="md:col-span-2">
                         <Formfield
                             form={form}
                             name={`lines.${i}.unit_price`}
@@ -74,7 +74,7 @@ export const ItemsLineForm = ({
                             placeholder="0"
                         />
                     </div>
-                    <div className="col-span-2">
+                    <div className="md:col-span-1">
                         <Formfield
                             form={form}
                             name={`lines.${i}.tax_rate`}
@@ -83,13 +83,13 @@ export const ItemsLineForm = ({
                             disabled={tvaNonApplicable}
                         />
                     </div>
-                    <div className="col-span-1">
+                    <div className="md:col-span-1">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => remove(i)}
                         >
-                            −
+                            -
                         </Button>
                     </div>
                 </div>

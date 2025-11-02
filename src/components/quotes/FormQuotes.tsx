@@ -101,7 +101,7 @@ export const FormQuotes = ({
     }
 
     return (
-        <main className="mt-10 flex flex-col gap-5 items-center justify-center">
+        <main className="mt-10 flex flex-col gap-5 items-center justify-center w-full p-4">
             <h2 className="text-2xl font-bold text-center mb-20">
                 {initialData?.quote.id ? 'Modifier' : 'Créer'} un devis
             </h2>

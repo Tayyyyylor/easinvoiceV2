@@ -62,7 +62,7 @@ const Login = () => {
                 disabled={
                     !form.formState.isValid || form.formState.isSubmitting
                 }
-                className="w-full"
+                className="w-full bg-mainBlue text-white hover:bg-mainBlueLight"
             >
                 {form.formState.isSubmitting ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -78,7 +78,7 @@ const Login = () => {
                     width={300}
                     height={300}
                 />
-                <h2 className="text-2xl font-bold">Connexion</h2>
+                <h2 className="text-2xl font-bold text-mainBlue">Connexion</h2>
             </article>
             <Form {...form}>
                 <form

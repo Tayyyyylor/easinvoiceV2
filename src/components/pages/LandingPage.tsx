@@ -1,18 +1,16 @@
 import React from 'react'
-import { Button } from '../ui/button'
-import Link from 'next/link'
+import { HeroBanner } from '../landingPage/hero/HeroBanner'
 
 export const LandingPage = () => {
     return (
-        <>
-            <main className="flex flex-col items-center justify-center h-screen">
-                <Button asChild>
-                    <Link href="/signup">Signup</Link>
-                </Button>
-                <Button asChild>
-                    <Link href="/login">Login</Link>
-                </Button>
-            </main>
-        </>
+        <main className="flex flex-col items-center justify-center h-screen overflow-hidden">
+            <HeroBanner />
+            <p>Problemes / transformation</p>
+            <p>comment ça fonctionne (video) ou animation </p>
+            <p>fonctionnalités et avantages</p>
+            <p>preuve social</p>
+            <p>FAQ</p>
+            footer
+        </main>
     )
 }

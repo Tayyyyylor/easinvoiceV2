@@ -25,6 +25,14 @@
     --radius-md: calc(0.5rem - 2px);
     --radius-sm: calc(0.5rem - 4px);
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --color-backgroundLight: #f9fafb;
+    --color-lightGray: #e5e7eb;
+    --color-darkGray: #374151;
+    --color-greenSuccess: #10b981;
+    --color-orangeWarning: #f59e0b;
+    --color-redError: #ef4444;
+    --color-mainBlue: #2563eb;
+    --color-mainBlueLight: #3b82f6;
 }
 
 @media (prefers-color-scheme: dark) {

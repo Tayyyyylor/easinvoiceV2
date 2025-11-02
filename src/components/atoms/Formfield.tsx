@@ -7,7 +7,6 @@ import {
     FormLabel,
     FormMessage,
 } from '../ui/form'
-import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -43,7 +42,7 @@ export const Formfield = ({
                     <FormLabel>{label}</FormLabel>
                     <FormControl>
                         <div className="relative">
-                            <Input
+                            <input
                                 placeholder={placeholder}
                                 {...field}
                                 type={
@@ -53,7 +52,7 @@ export const Formfield = ({
                                             : 'password'
                                         : type
                                 }
-                                className="pr-10"
+                                className="border border-darkGray rounded-md p-2 w-full"
                                 disabled={disabled}
                             />
                             {type === 'password' && (
@@ -73,7 +72,7 @@ export const Formfield = ({
                             )}
                         </div>
                     </FormControl>
-                    <FormMessage className="text-sm text-red-500" />
+                    <FormMessage className="text-sm text-redError" />
                 </FormItem>
             )}
         />

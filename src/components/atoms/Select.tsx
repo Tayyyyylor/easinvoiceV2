@@ -19,12 +19,18 @@ export const Select = ({
 }: SelectProps) => {
     return (
         <div>
-            <label htmlFor={id || name}>{label}</label>
+            <label
+                htmlFor={id || name}
+                className="text-s text-darkGray font-bold mr-2"
+            >
+                {label}
+            </label>
             <select
                 name={name}
                 id={id || name}
                 value={value}
                 onChange={onChange}
+                className="border border-darkGray rounded-md p-2 "
             >
                 {options.map((option, index) => (
                     <option value={option.value} key={option.id || index}>

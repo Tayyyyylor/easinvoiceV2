@@ -107,7 +107,7 @@ export const FormInvoices = ({
 
     return (
         <main className="mt-10 flex flex-col gap-5 items-center justify-center">
-            <h2 className="text-2xl font-bold text-center mb-20">
+            <h2 className="text-2xl font-bold text-center mb-20 text-mainBlue">
                 {initialData?.invoice.id ? 'Modifier' : 'Créer'} une facture
             </h2>
             <Form {...form}>
@@ -188,7 +188,7 @@ export const FormInvoices = ({
                         />
 
                         {form.formState.errors.client_id && (
-                            <p className="text-sm text-red-500">
+                            <p className="text-sm text-redError">
                                 {form.formState.errors.client_id.message}
                             </p>
                         )}

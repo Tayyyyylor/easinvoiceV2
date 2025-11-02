@@ -55,7 +55,10 @@ export const QuoteDetails = ({
             </section>
 
             <div className="space-x-3">
-                <button className="border px-3 py-1 rounded" onClick={download}>
+                <button
+                    className="border px-3 py-1 rounded bg-mainBlue text-white hover:bg-mainBlueLight cursor-pointer"
+                    onClick={download}
+                >
                     Télécharger le PDF
                 </button>
 

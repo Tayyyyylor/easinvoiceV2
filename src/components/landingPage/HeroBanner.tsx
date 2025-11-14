@@ -1,8 +1,10 @@
 'use client'
 import React from 'react'
 import { FileText, Zap, CheckCircle, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export const HeroBanner = () => {
+    const router = useRouter()
     return (
         <section className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative overflow-hidden">
             {/* Decorative background elements */}
@@ -25,7 +27,7 @@ export const HeroBanner = () => {
                         </div>
 
                         {/* Main Title */}
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+                        <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
                             Créez vos{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                                 factures
@@ -35,7 +37,7 @@ export const HeroBanner = () => {
                                 devis
                             </span>{' '}
                             en un éclair
-                        </h1>
+                        </h2>
 
                         {/* Subtitle */}
                         <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
@@ -53,21 +55,16 @@ export const HeroBanner = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <CheckCircle className="w-5 h-5 text-green-500" />
-                                <span className="text-gray-700">
-                                    Essai gratuit 14 jours
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5 text-green-500" />
-                                <span className="text-gray-700">
-                                    Sans engagement
-                                </span>
+                                <span className="text-gray-700">Gratuit</span>
                             </div>
                         </div>
 
                         {/* CTA Buttons */}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                            <button className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                            <button
+                                onClick={() => router.push('/login')}
+                                className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
+                            >
                                 Commencer gratuitement
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>

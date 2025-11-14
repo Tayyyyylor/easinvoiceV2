@@ -1,36 +1,17 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import {
-    Mail,
-    Twitter,
-    Linkedin,
-    Facebook,
-    Instagram,
-    Heart,
-} from 'lucide-react'
+import { Mail, Heart } from 'lucide-react'
 
 export const Footer = () => {
     const currentYear = new Date().getFullYear()
 
     const footerLinks = {
-        product: [
-            { label: 'Fonctionnalités', href: '#features' },
-            { label: 'Tarifs', href: '#pricing' },
-            { label: 'Démo', href: '#demo' },
-            { label: 'Témoignages', href: '#testimonials' },
-        ],
-        resources: [
-            { label: 'Documentation', href: '#docs' },
-            { label: 'Guide de démarrage', href: '#guide' },
-            { label: 'Blog', href: '#blog' },
-            { label: 'FAQ', href: '#faq' },
-        ],
+        product: [{ label: 'Fonctionnalités', href: '#features' }],
+        resources: [{ label: 'FAQ', href: '#faq' }],
         company: [
             { label: 'À propos', href: '#about' },
             { label: 'Contact', href: '#contact' },
-            { label: 'Carrières', href: '#careers' },
-            { label: 'Presse', href: '#press' },
         ],
         legal: [
             { label: 'Mentions légales', href: '#legal' },
@@ -39,29 +20,6 @@ export const Footer = () => {
             { label: 'Cookies', href: '#cookies' },
         ],
     }
-
-    const socialLinks = [
-        {
-            icon: <Twitter className="w-5 h-5" />,
-            href: '#twitter',
-            label: 'Twitter',
-        },
-        {
-            icon: <Linkedin className="w-5 h-5" />,
-            href: '#linkedin',
-            label: 'LinkedIn',
-        },
-        {
-            icon: <Facebook className="w-5 h-5" />,
-            href: '#facebook',
-            label: 'Facebook',
-        },
-        {
-            icon: <Instagram className="w-5 h-5" />,
-            href: '#instagram',
-            label: 'Instagram',
-        },
-    ]
 
     return (
         <footer className="w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300">
@@ -114,19 +72,6 @@ export const Footer = () => {
                             pour les entrepreneurs, freelances et petites
                             entreprises.
                         </p>
-                        {/* Social Links */}
-                        <div className="flex gap-3">
-                            {socialLinks.map((social, index) => (
-                                <a
-                                    key={index}
-                                    href={social.href}
-                                    aria-label={social.label}
-                                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-110"
-                                >
-                                    {social.icon}
-                                </a>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Product Links */}

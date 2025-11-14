@@ -48,7 +48,7 @@ export const Header = ({
 
     return (
         <View style={styles.container}>
-            {logoUrl && <Image src={logoUrl} style={styles.logo}/>}
+            {logoUrl && <Image src={logoUrl} style={styles.logo} />}
             <View style={styles.titleContainer}>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.date}>

@@ -59,7 +59,7 @@ export const FAQSection = () => {
     }
 
     return (
-        <section className="w-full py-20 px-4 bg-white">
+        <section className="w-full py-20 px-4 bg-white" id="faq">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-16">
@@ -116,7 +116,13 @@ export const FAQSection = () => {
                         Notre équipe est là pour vous aider. N&apos;hésitez pas
                         à nous contacter !
                     </p>
-                    <button className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 hover:shadow-lg transition-all transform hover:scale-105">
+                    <button
+                        onClick={() =>
+                            (window.location.href =
+                                'mailto:taylordevcontact@gmail.com')
+                        }
+                        className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 hover:shadow-lg transition-all transform hover:scale-105 cursor-pointer"
+                    >
                         Contactez-nous
                     </button>
                 </div>

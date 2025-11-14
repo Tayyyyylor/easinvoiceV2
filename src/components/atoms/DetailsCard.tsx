@@ -1,4 +1,6 @@
 import React from 'react'
+import { Calendar, Tag } from 'lucide-react'
+import { formatDateShort, formatPrice } from '@/helpers/formatters'
 
 interface DetailsCardProps {
     title: string
@@ -27,30 +29,50 @@ export const DetailsCard = ({
         return 'Brouillon'
     }
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        const day = String(date.getDate()).padStart(2, '0')
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const year = date.getFullYear()
-        return `${day}/${month}/${year}`
-    }
     return (
         <button
-            className="border rounded-lg p-4 w-full flex flex-col gap-8 cursor-pointer"
+            className="bg-white border border-gray-200 rounded-xl p-6 w-full hover:shadow-lg hover:border-blue-300 transition-all transform hover:scale-[1.02] cursor-pointer group"
             onClick={onClick}
         >
-            <div className="flex flex-col items-start">
-                <div className="flex gap-2 items-center">
-                    <h3 className="text-lg font-bold text-darkGray">{title}</h3>
-                    <p className="text-sm text-gray-500">{getStatus()}</p>
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                    {/* En-tête avec titre et badge */}
+                    <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                            {title}
+                        </h3>
+                        <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                                status_label === 'published'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-amber-100 text-amber-700'
+                            }`}
+                        >
+                            {getStatus()}
+                        </span>
+                    </div>
+
+                    {/* Nom/Description */}
+                    <p className="text-sm text-gray-600 mb-4 truncate">
+                        {name}
+                    </p>
+
+                    {/* Footer avec prix et date */}
+                    <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-2">
+                            <Tag className="w-4 h-4 text-blue-600" />
+                            <span className="text-lg font-bold text-blue-600">
+                                {formatPrice(price)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-500">
+                            <Calendar className="w-4 h-4" />
+                            <span className="text-sm font-medium">
+                                {formatDateShort(created_at)}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <p className="text-sm text-gray-500">{name}</p>
-            </div>
-            <div className="flex gap-2 items-center justify-between">
-                <p className="text-s text-mainBlue font-bold">{price}€</p>
-                <p className="text-sm text-darkGray font-bold">
-                    {formatDate(created_at)}
-                </p>
             </div>
         </button>
     )

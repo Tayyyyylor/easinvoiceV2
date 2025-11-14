@@ -10,6 +10,14 @@ import Link from 'next/link'
 import { Formfield } from '../atoms/Formfield'
 import Image from 'next/image'
 import useMobile from '@/hooks/useMobile'
+import {
+    Mail,
+    Lock,
+    ArrowRight,
+    AlertCircle,
+    CheckCircle2,
+    ShieldCheck,
+} from 'lucide-react'
 
 const formSchema = z
     .object({
@@ -52,88 +60,214 @@ const Signup = () => {
         mode: 'onChange',
     })
 
-    const formFields = [
-        {
-            name: 'email',
-            label: 'Email',
-            placeholder: 'Email',
-        },
-        {
-            name: 'password',
-            label: 'Mot de passe',
-            placeholder: 'Mot de passe',
-            type: 'password',
-        },
-        {
-            name: 'confirm_password',
-            label: 'Confirmer le mot de passe',
-            placeholder: 'Confirmer le mot de passe',
-            type: 'password',
-        },
-    ]
-    const formContent = (
-        <section className="flex flex-col gap-4 border p-10 rounded-lg w-full">
-            {state?.error && (
-                <div
-                    className="text-white px-4 py-3 rounded relative"
-                    role="alert"
-                >
-                    <span className="block sm:inline">{state.error}</span>
-                </div>
-            )}
-            {formFields.map((field) => (
-                <Formfield key={field.name} form={form} {...field} />
-            ))}
-            <Button
-                type="submit"
-                disabled={
-                    !form.formState.isValid || form.formState.isSubmitting
-                }
-                className="w-full bg-mainBlue text-white hover:bg-mainBlueLight"
-            >
-                {form.formState.isSubmitting ? 'Inscription...' : "S'inscrire"}
-            </Button>
-            <p className="text-sm text-gray-500 mt-4 text-center">
-                En vous inscrivant, vous acceptez les{' '}
-                <Link href="/terms" className="text-mainBlueLight">
-                    Conditions d&apos;utilisation
-                </Link>{' '}
-                et la{' '}
-                <Link href="/privacy" className="text-mainBlueLight">
-                    Politique de confidentialité
-                </Link>
-                .
-            </p>
-        </section>
-    )
+    const password = form.watch('password')
+
+    // Validation du mot de passe en temps réel
+    const passwordValidations = {
+        minLength: password?.length >= 8,
+        hasUppercase: /[A-Z]/.test(password || ''),
+        hasNumber: /[0-9]/.test(password || ''),
+    }
 
     return (
-        <main className="flex flex-col items-center justify-center h-screen w-full">
-            <article className="flex flex-col items-center justify-center gap-4 mb-15">
-                <Image
-                    src="/logo_black.png"
-                    alt="Logo"
-                    width={300}
-                    height={300}
-                />
-                <h2 className="text-2xl font-bold text-mainBlue">
-                    Inscription
-                </h2>
-            </article>
-            <Form {...form}>
-                <form
-                    action={formAction}
-                    className={`space-y-8 ${isMobile ? 'w-[90%]' : 'w-[500px]'}`}
-                >
-                    {formContent}
-                </form>
-            </Form>
-            <p className="text-sm text-gray-500 mt-4">
-                Vous avez déjà un compte ?
-                <Link href="/login" className="text-mainBlueLight">
-                    Se connecter
-                </Link>
-            </p>
+        <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
+            {/* Cercles décoratifs en arrière-plan */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+            </div>
+
+            <div
+                className={`relative z-10 w-full ${isMobile ? 'max-w-md' : 'max-w-md'}`}
+            >
+                {/* Logo et titre */}
+                <div className="text-center mb-8">
+                    <div className="flex justify-center mb-6">
+                        <Image
+                            src="/logo_black.png"
+                            alt="Logo"
+                            width={180}
+                            height={60}
+                            className=" w-auto"
+                        />
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        Créez votre compte
+                    </h1>
+                    <p className="text-gray-600">
+                        Commencez à gérer vos factures et devis facilement
+                    </p>
+                </div>
+
+                {/* Carte du formulaire */}
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+                    {/* Message d'erreur */}
+                    {state?.error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm text-red-800">
+                                {state.error}
+                            </span>
+                        </div>
+                    )}
+
+                    <Form {...form}>
+                        <form action={formAction} className="space-y-5">
+                            {/* Champ Email */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-purple-600" />
+                                    Email
+                                </label>
+                                <Formfield
+                                    form={form}
+                                    name="email"
+                                    label=""
+                                    placeholder="votre@email.com"
+                                />
+                            </div>
+
+                            {/* Champ Mot de passe */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                    <Lock className="w-4 h-4 text-purple-600" />
+                                    Mot de passe
+                                </label>
+                                <Formfield
+                                    form={form}
+                                    name="password"
+                                    label=""
+                                    type="password"
+                                    placeholder="••••••••"
+                                />
+
+                                {/* Indicateurs de validation du mot de passe */}
+                                {password && (
+                                    <div className="mt-3 space-y-2 p-3 bg-gray-50 rounded-lg">
+                                        <p className="text-xs font-medium text-gray-700 mb-2">
+                                            Votre mot de passe doit contenir :
+                                        </p>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <CheckCircle2
+                                                    className={`w-4 h-4 ${passwordValidations.minLength ? 'text-green-600' : 'text-gray-400'}`}
+                                                />
+                                                <span
+                                                    className={
+                                                        passwordValidations.minLength
+                                                            ? 'text-green-700'
+                                                            : 'text-gray-600'
+                                                    }
+                                                >
+                                                    Au moins 8 caractères
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <CheckCircle2
+                                                    className={`w-4 h-4 ${passwordValidations.hasUppercase ? 'text-green-600' : 'text-gray-400'}`}
+                                                />
+                                                <span
+                                                    className={
+                                                        passwordValidations.hasUppercase
+                                                            ? 'text-green-700'
+                                                            : 'text-gray-600'
+                                                    }
+                                                >
+                                                    Une majuscule
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <CheckCircle2
+                                                    className={`w-4 h-4 ${passwordValidations.hasNumber ? 'text-green-600' : 'text-gray-400'}`}
+                                                />
+                                                <span
+                                                    className={
+                                                        passwordValidations.hasNumber
+                                                            ? 'text-green-700'
+                                                            : 'text-gray-600'
+                                                    }
+                                                >
+                                                    Un chiffre
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Champ Confirmation mot de passe */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                    <ShieldCheck className="w-4 h-4 text-purple-600" />
+                                    Confirmer le mot de passe
+                                </label>
+                                <Formfield
+                                    form={form}
+                                    name="confirm_password"
+                                    label=""
+                                    type="password"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+
+                            {/* Bouton d'inscription */}
+                            <Button
+                                type="submit"
+                                disabled={
+                                    !form.formState.isValid ||
+                                    form.formState.isSubmitting
+                                }
+                                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white h-12 rounded-xl font-semibold shadow-lg transition-all flex items-center justify-center gap-2 group"
+                            >
+                                {form.formState.isSubmitting ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        Inscription...
+                                    </>
+                                ) : (
+                                    <>
+                                        S&apos;inscrire
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </Button>
+
+                            {/* Conditions */}
+                            <p className="text-xs text-gray-500 text-center leading-relaxed">
+                                En vous inscrivant, vous acceptez nos{' '}
+                                <Link
+                                    href="/terms"
+                                    className="text-purple-600 hover:text-purple-700 hover:underline"
+                                >
+                                    Conditions d&apos;utilisation
+                                </Link>{' '}
+                                et notre{' '}
+                                <Link
+                                    href="/privacy"
+                                    className="text-purple-600 hover:text-purple-700 hover:underline"
+                                >
+                                    Politique de confidentialité
+                                </Link>
+                                .
+                            </p>
+                        </form>
+                    </Form>
+                </div>
+
+                {/* Lien connexion */}
+                <div className="mt-6 text-center">
+                    <p className="text-gray-600">
+                        Vous avez déjà un compte ?{' '}
+                        <Link
+                            href="/login"
+                            className="text-purple-600 hover:text-purple-700 font-semibold hover:underline"
+                        >
+                            Se connecter
+                        </Link>
+                    </p>
+                </div>
+            </div>
         </main>
     )
 }

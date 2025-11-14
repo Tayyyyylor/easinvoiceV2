@@ -1,5 +1,4 @@
 'use client'
-import Image from 'next/image'
 import React from 'react'
 import { FileText, Zap, CheckCircle, ArrowRight } from 'lucide-react'
 
@@ -17,20 +16,6 @@ export const HeroBanner = () => {
                 <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
                     {/* Left Column - Content */}
                     <div className="text-center lg:text-left z-10">
-                        {/* Logo */}
-                        <div className="flex justify-center lg:justify-start mb-8">
-                            <div className="relative">
-                                <Image
-                                    src="/logo_black.png"
-                                    alt="EasInvoice Logo"
-                                    width={200}
-                                    height={60}
-                                    className="h-12 w-auto"
-                                    priority
-                                />
-                            </div>
-                        </div>
-
                         {/* Badge */}
                         <div className="inline-flex items-center px-4 py-2 bg-blue-100 rounded-full mb-6">
                             <Zap className="w-4 h-4 text-blue-600 mr-2" />
@@ -86,34 +71,6 @@ export const HeroBanner = () => {
                                 Commencer gratuitement
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
-                            <button className="px-8 py-4 bg-white text-gray-700 text-lg font-semibold rounded-xl shadow-md hover:shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-all">
-                                Voir la démo
-                            </button>
-                        </div>
-
-                        {/* Trust Indicators */}
-                        <div className="mt-10 pt-8 border-t border-gray-200">
-                            <p className="text-sm text-gray-500 mb-4">
-                                Rejoint par plus de 1000+ entrepreneurs
-                            </p>
-                            <div className="flex items-center justify-center lg:justify-start gap-2">
-                                <div className="flex -space-x-2">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <div
-                                            key={i}
-                                            className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-                                        >
-                                            {String.fromCharCode(64 + i)}
-                                        </div>
-                                    ))}
-                                </div>
-                                <span className="text-yellow-500 text-lg ml-2">
-                                    ★★★★★
-                                </span>
-                                <span className="text-gray-600 text-sm ml-1">
-                                    4.9/5
-                                </span>
-                            </div>
                         </div>
                     </div>
 

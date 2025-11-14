@@ -19,14 +19,15 @@ export const FilterButtons = <T extends string>({
     className = '',
 }: FilterButtonsProps<T>) => {
     const getButtonClass = (value: T) => {
-        const baseClass = 'border px-3 py-1 rounded transition-colors'
+        const baseClass =
+            'px-4 py-2.5 rounded-lg font-medium transition-all transform'
         return currentFilter === value
-            ? `${baseClass} bg-darkGray text-white`
-            : `${baseClass} hover:bg-gray-100`
+            ? `${baseClass} bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105`
+            : `${baseClass} bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:shadow-md hover:scale-102`
     }
 
     return (
-        <section className={`flex gap-2 ${className}`}>
+        <div className={`flex flex-wrap gap-2 ${className}`}>
             {options.map((option) => (
                 <button
                     key={option.value}
@@ -36,6 +37,6 @@ export const FilterButtons = <T extends string>({
                     {option.label}
                 </button>
             ))}
-        </section>
+        </div>
     )
 }

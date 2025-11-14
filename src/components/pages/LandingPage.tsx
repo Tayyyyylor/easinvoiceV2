@@ -2,7 +2,7 @@ import React from 'react'
 import { HeroBanner } from '../landingPage/HeroBanner'
 import { ProblemsSection } from '../landingPage/ProblemsSection'
 import { FAQSection } from '../landingPage/FAQSection'
-import { Footer } from '../landingPage/Footer'
+import { Footer } from '../layouts/footer/Footer'
 
 export const LandingPage = () => {
     return (

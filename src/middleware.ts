@@ -2,6 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
+    // Exclure les webhooks du middleware (pas de session utilisateur nécessaire)
+    if (request.nextUrl.pathname.startsWith('/api/webhook')) {
+        return NextResponse.next()
+    }
+
     // const isProduction = process.env.NODE_ENV === 'production' // or true for testing
     const isProduction = true // Temporaire pour tester le mode maintenance en dev
     const maintenanceMode = process.env.MAINTENANCE_MODE === 'true'

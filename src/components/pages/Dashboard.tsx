@@ -98,7 +98,6 @@ export default function Dashboard({
     return (
         <AdLayout>
             <div className="space-y-6">
-                {/* Headband et Premium Button */}
                 {!isProfileCompleted && <Headband />}
                 {!isSubscribed && (
                     <div className="flex justify-center">

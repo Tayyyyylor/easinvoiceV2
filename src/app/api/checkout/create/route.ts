@@ -17,6 +17,7 @@ export async function POST(req: Request) {
         ]
 
         if (!priceId || !validPriceIds.includes(priceId)) {
+            console.error('❌ Prix invalide:', priceId)
             return NextResponse.json(
                 { error: 'Prix invalide' },
                 { status: 400 }
@@ -24,6 +25,10 @@ export async function POST(req: Request) {
         }
 
         if (!supabaseUserId) {
+            console.error(
+                '❌ Identifiant utilisateur invalide:',
+                supabaseUserId
+            )
             return NextResponse.json(
                 { error: "L'identifiant utilisateur est requis" },
                 { status: 400 }
@@ -39,6 +44,10 @@ export async function POST(req: Request) {
 
         if (subError) {
             console.error(
+                "❌ Erreur lors de la vérification de l'abonnement:",
+                subError
+            )
+            console.error(
                 "Erreur lors de la vérification de l'abonnement:",
                 subError
             )
@@ -49,6 +58,7 @@ export async function POST(req: Request) {
         }
 
         if (subscriptions && subscriptions.length > 0) {
+            console.error('❌ Vous avez déjà un abonnement actif')
             return NextResponse.json(
                 { error: 'Vous avez déjà un abonnement actif' },
                 { status: 400 }
@@ -64,6 +74,10 @@ export async function POST(req: Request) {
 
         if (customerError && customerError.code !== 'PGRST116') {
             console.error(
+                '❌ Erreur lors de la récupération du customer:',
+                customerError
+            )
+            console.error(
                 'Erreur lors de la récupération du customer:',
                 customerError
             )
@@ -75,13 +89,14 @@ export async function POST(req: Request) {
             )
         }
 
+        console.log('🔑 Customer:', customer)
         let stripeCustomerId = customer?.customer_id
         // ⚠️ IMPORTANT: En mode TEST, ignorer les customer_id de PRODUCTION
         const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
         if (
             isTestMode &&
             stripeCustomerId &&
-            !stripeCustomerId.startsWith('cus_test_')
+            !stripeCustomerId.startsWith('cus_TQ')
         ) {
             console.warn(
                 "⚠️ Customer de production détecté en mode test, création d'un nouveau customer de test"
@@ -92,6 +107,8 @@ export async function POST(req: Request) {
         // 2) Créer un nouveau customer si nécessaire
         if (!stripeCustomerId) {
             try {
+                console.log("🔑 Création d'un nouveau customer")
+
                 const stripeCustomer = await stripe.customers.create({
                     metadata: { supabase_user_id: supabaseUserId },
                 })
@@ -105,6 +122,10 @@ export async function POST(req: Request) {
                     })
 
                 if (insertError) {
+                    console.log(
+                        '❌ Erreur lors de la création du customer:',
+                        insertError
+                    )
                     console.error(
                         'Erreur lors de la création du customer:',
                         insertError
@@ -116,6 +137,7 @@ export async function POST(req: Request) {
                         { status: 500 }
                     )
                 }
+                console.log('first customer created', stripeCustomer)
             } catch (stripeError) {
                 console.error('Erreur Stripe:', stripeError)
                 return NextResponse.json(
@@ -127,6 +149,7 @@ export async function POST(req: Request) {
 
         // 3) Créer la session Checkout
         try {
+            console.log('🔑 Création de la session Checkout')
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 payment_method_types: ['card'],
@@ -138,7 +161,7 @@ export async function POST(req: Request) {
                     metadata: { supabase_user_id: supabaseUserId },
                 },
             })
-
+            console.log('session', session)
             return NextResponse.json({ url: session.url })
         } catch (stripeError) {
             console.error(

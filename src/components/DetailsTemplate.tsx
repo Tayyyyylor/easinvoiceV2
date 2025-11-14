@@ -1,3 +1,4 @@
+'use client'
 import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from './ui/button'
@@ -5,6 +6,8 @@ import { DetailsCard } from './atoms/DetailsCard'
 import { FilterButtons, FilterOption } from './atoms/FilterButtons'
 import { AdLayout } from './layouts/AdLayout'
 import { Plus } from 'lucide-react'
+import { useSubscription } from '@/hooks/useSubscription'
+import { convertQuoteToInvoice } from '@/app/(app)/quotes/action'
 
 interface DetailsTemplateProps {
     titleButton: string[]
@@ -20,6 +23,7 @@ export const DetailsTemplate = ({
     link,
 }: DetailsTemplateProps) => {
     const router = useRouter()
+    const { isSubscribed, isLoading } = useSubscription()
     const [filter, setFilter] = useState<FilterStatus>('all')
 
     const filterOptions: FilterOption<FilterStatus>[] = [
@@ -27,11 +31,31 @@ export const DetailsTemplate = ({
         { value: 'draft', label: titleButton[1] },
         { value: 'published', label: titleButton[2] },
     ]
-
+    console.log('isSubscribed', isSubscribed)
     const filteredData = useMemo(() => {
         if (filter === 'all') return data
         return data.filter((dt) => dt.status === filter)
     }, [data, filter])
+
+    const handleConvert = async (quoteId: number) => {
+        // Si en cours de chargement, ne rien faire
+        if (isLoading) {
+            return
+        }
+
+        // Si pas abonné, rediriger vers billing
+        if (!isSubscribed) {
+            router.push('/billing')
+            return
+        }
+
+        // Créer un FormData avec l'ID du devis
+        const formData = new FormData()
+        formData.append('quote_id', quoteId.toString())
+
+        // Appeler l'action serveur
+        await convertQuoteToInvoice(formData)
+    }
 
     const getIcon = () => {
         if (link === 'quotes') {
@@ -142,6 +166,13 @@ export const DetailsTemplate = ({
                             created_at={data.created_at}
                             status_label={data.status}
                             onClick={() => router.push(`/${link}/${data.id}`)}
+                            isQuote={link === 'quotes'}
+                            onConvert={
+                                link === 'quotes' && data.status === 'published'
+                                    ? () => handleConvert(data.id)
+                                    : undefined
+                            }
+                            isSubscribed={isSubscribed}
                         />
                     ))
                 ) : (

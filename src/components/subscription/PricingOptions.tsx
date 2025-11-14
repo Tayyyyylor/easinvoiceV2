@@ -13,7 +13,7 @@ const pricingOptions: PricingOption[] = [
     {
         id: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY as string,
         name: 'Abonnement Mensuel',
-        price: 9.99, // Remplacez par votre prix
+        price: 9.9, // Remplacez par votre prix
         interval: 'month',
         features: [
             'Factures illimitées',
@@ -25,7 +25,7 @@ const pricingOptions: PricingOption[] = [
     {
         id: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY as string,
         name: 'Abonnement Annuel',
-        price: 90.99, // Remplacez par votre prix
+        price: 90, // Remplacez par votre prix
         interval: 'year',
         features: [
             'Toutes les fonctionnalités mensuelles',

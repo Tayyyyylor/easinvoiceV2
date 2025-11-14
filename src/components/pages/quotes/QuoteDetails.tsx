@@ -7,8 +7,9 @@ const PDFViewer = dynamic(
 )
 import { QuotePdf } from '@/components/pdf/QuotePdf'
 import { useAuth } from '@/contexts/useAuth'
-import { finalizeQuote } from '@/app/(app)/quotes/action'
+import { finalizeQuote, convertQuoteToInvoice } from '@/app/(app)/quotes/action'
 import { useRouter } from 'next/navigation'
+import { useSubscription } from '@/hooks/useSubscription'
 import { AdLayout } from '@/components/layouts/AdLayout'
 import {
     Download,
@@ -18,6 +19,8 @@ import {
     FileText,
     User,
     Calendar,
+    FileCheck,
+    Crown,
 } from 'lucide-react'
 import { formatDateLong, formatPriceFromCents } from '@/helpers/formatters'
 
@@ -32,7 +35,9 @@ export const QuoteDetails = ({
 }) => {
     const router = useRouter()
     const { profile } = useAuth()
+    const { isSubscribed } = useSubscription()
     const [showConfirm, setShowConfirm] = useState(false)
+    const [showConvertConfirm, setShowConvertConfirm] = useState(false)
 
     const download = async () => {
         const res = await fetch(`/api/quotes/${quote.id}/pdf`, {
@@ -62,7 +67,7 @@ export const QuoteDetails = ({
                             </div>
                             <div>
                                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                                    Devis #{quote.id}
+                                    {quote.name || quote.formatted_no}
                                 </h1>
                                 <p className="text-gray-600">{quote.name}</p>
                             </div>
@@ -132,6 +137,27 @@ export const QuoteDetails = ({
                             Télécharger le PDF
                         </button>
 
+                        {/* Bouton Convertir en facture - Premium */}
+                        {!isDraft &&
+                            !showConvertConfirm &&
+                            (isSubscribed ? (
+                                <button
+                                    className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                                    onClick={() => setShowConvertConfirm(true)}
+                                >
+                                    <FileCheck className="w-5 h-5" />
+                                    Convertir en facture
+                                </button>
+                            ) : (
+                                <button
+                                    className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                                    onClick={() => router.push('/billing')}
+                                >
+                                    <Crown className="w-5 h-5" />
+                                    Convertir en facture (Premium)
+                                </button>
+                            ))}
+
                         {isDraft && !showConfirm && (
                             <>
                                 <button
@@ -178,6 +204,40 @@ export const QuoteDetails = ({
                                 <button
                                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition-colors"
                                     onClick={() => setShowConfirm(false)}
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Confirmation de conversion */}
+                        {showConvertConfirm && (
+                            <div className="flex items-center gap-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-l-4 border-emerald-500 p-4 rounded-xl">
+                                <FileCheck className="w-6 h-6 text-emerald-600" />
+                                <p className="text-gray-800 font-medium flex-1">
+                                    Êtes-vous sûr de vouloir convertir ce devis
+                                    en facture ? Une nouvelle facture brouillon
+                                    sera créée avec les mêmes informations.
+                                </p>
+                                <form
+                                    action={convertQuoteToInvoice}
+                                    className="flex gap-2"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="quote_id"
+                                        value={quote.id}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-lg text-sm font-semibold hover:from-emerald-700 hover:to-teal-800 transition-all shadow-md"
+                                    >
+                                        Oui, convertir
+                                    </button>
+                                </form>
+                                <button
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition-colors"
+                                    onClick={() => setShowConvertConfirm(false)}
                                 >
                                     Annuler
                                 </button>

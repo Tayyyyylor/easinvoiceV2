@@ -79,6 +79,7 @@ export async function POST(request: Request) {
                 )) as unknown as StripeSubscription
 
                 const supabaseUserId = subscription.metadata?.supabase_user_id
+
                 if (!supabaseUserId) {
                     console.error('❌ Pas de supabase_user_id dans metadata')
                     return new Response('Metadata manquante', { status: 400 })

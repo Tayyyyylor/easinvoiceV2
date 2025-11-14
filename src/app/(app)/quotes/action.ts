@@ -255,3 +255,116 @@ export async function finalizeQuote(formData: FormData) {
     revalidatePath('/dashboard')
     redirect(`/quotes`)
 }
+
+export async function convertQuoteToInvoice(formData: FormData) {
+    const { user, supabase } = await getAuthenticatedUser()
+
+    const quoteId = Number(formData.get('quote_id'))
+
+    if (!quoteId) {
+        console.error('Quote ID is required')
+        redirect('/error')
+    }
+
+    // Vérifier l'abonnement premium
+    const { data: subscriptions } = await supabase
+        .from('app_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+    const hasActiveSubscription =
+        subscriptions &&
+        subscriptions.length > 0 &&
+        ['active', 'trialing'].includes(subscriptions[0].status)
+
+    if (!hasActiveSubscription) {
+        console.error('Premium subscription required')
+        redirect('/billing')
+    }
+
+    // Récupérer le devis avec ses items
+    const { data: quote, error: quoteError } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('id', quoteId)
+        .eq('owner_id', user.id)
+        .single()
+
+    if (quoteError || !quote) {
+        console.error('Quote not found or unauthorized', quoteError)
+        redirect('/error')
+    }
+
+    // Vérifier que le devis est finalisé
+    if (quote.status !== 'published') {
+        console.error('Only finalized quotes can be converted to invoices')
+        redirect('/error')
+    }
+
+    // Récupérer les items du devis
+    const { data: quoteItems, error: itemsError } = await supabase
+        .from('quote_items')
+        .select('*')
+        .eq('quote_id', quoteId)
+
+    if (itemsError) {
+        console.error('Failed to fetch quote items', itemsError)
+        redirect('/error')
+    }
+
+    // Créer la facture
+    const { data: insertedInvoice, error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+            owner_id: user.id,
+            client_id: quote.client_id,
+            name: quote.name,
+            description: quote.description,
+            currency: quote.currency,
+            terms: quote.terms,
+            subtotal_cents: quote.subtotal_cents,
+            tax_cents: quote.tax_cents,
+            total_cents: quote.total_cents,
+            status: 'draft',
+            payment_date: '30 jours fin de mois',
+            payment_method: 'Virement bancaire',
+            interest_rate: 0,
+        })
+        .select('id')
+        .single()
+
+    if (invoiceError || !insertedInvoice) {
+        console.error('Failed to create invoice', invoiceError)
+        redirect('/error')
+    }
+
+    const invoiceId = insertedInvoice.id
+
+    // Créer les items de la facture
+    const invoiceItemsToInsert = quoteItems?.map((item) => ({
+        invoice_id: invoiceId,
+        description: item.description,
+        type: item.type,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        tax_rate: item.tax_rate,
+        total_price: item.total_price,
+    }))
+
+    if (invoiceItemsToInsert && invoiceItemsToInsert.length > 0) {
+        const { error: invoiceItemsError } = await supabase
+            .from('invoice_items')
+            .insert(invoiceItemsToInsert)
+
+        if (invoiceItemsError) {
+            console.error('Failed to create invoice items', invoiceItemsError)
+            redirect('/error')
+        }
+    }
+
+    revalidatePath('/invoices')
+    revalidatePath('/dashboard')
+    redirect(`/invoices/${invoiceId}`)
+}

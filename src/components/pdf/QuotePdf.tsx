@@ -48,7 +48,7 @@ export function QuotePdf({
     const isFinalized = quote.status === 'published'
     const title = isFinalized
         ? quote.formatted_no
-        : `Facture provisoire ${quote.name ? `(${quote.name})` : ''}`
+        : `Devis provisoire ${quote.name ? `(${quote.name})` : ''}`
 
     return (
         <Document>

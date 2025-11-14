@@ -9,6 +9,17 @@ import { useAuth } from '@/contexts/useAuth'
 import { InvoicePdf } from '@/components/pdf/InvoicePdf'
 import { finalizeInvoice } from '@/app/(app)/invoices/action'
 import { useRouter } from 'next/navigation'
+import { AdLayout } from '@/components/layouts/AdLayout'
+import {
+    Download,
+    Check,
+    Edit,
+    AlertCircle,
+    FileText,
+    User,
+    Calendar,
+} from 'lucide-react'
+import { formatDateLong, formatPriceFromCents } from '@/helpers/formatters'
 
 export const InvoiceDetails = ({
     invoice,
@@ -40,103 +51,170 @@ export const InvoiceDetails = ({
     const isDraft = invoice.status === 'draft'
 
     return (
-        <main className="p-6 space-y-4 max-w-4xl mx-auto">
-            <section className="flex items-center gap-3">
-                <h2 className="text-xl">
-                    {isDraft ? (
-                        `Facture #${invoice.id}`
-                    ) : (
-                        <span>
-                            Facture
-                            <span className="font-bold">
-                                {invoice.formatted_no}
-                            </span>
-                        </span>
-                    )}
-                </h2>
-                <span
-                    className={`px-3 py-1 rounded text-sm ${
-                        isDraft
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-green-100 text-green-800'
-                    }`}
-                >
-                    {isDraft ? 'Provisoire' : 'Finalisée'}
-                </span>
-            </section>
-
-            <div className="space-x-3">
-                <button className="border px-3 py-1 rounded" onClick={download}>
-                    Télécharger le PDF
-                </button>
-
-                {isDraft && !showConfirm && (
-                    <button
-                        className="border px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
-                        onClick={() => setShowConfirm(true)}
-                    >
-                        Finaliser la facture
-                    </button>
-                )}
-                {isDraft && (
-                    <button
-                        className="border px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-800"
-                        onClick={() =>
-                            router.push(`/invoices/${invoice.id}/edit`)
-                        }
-                    >
-                        Modifier la facture
-                    </button>
-                )}
-
-                {showConfirm && (
-                    <div className="inline-flex items-center gap-2 border rounded px-3 py-1 bg-yellow-50">
-                        <span className="text-sm">
-                            Confirmer la finalisation ?
-                        </span>
-                        <form
-                            action={finalizeInvoice}
-                            className="inline-flex gap-2"
+        <AdLayout>
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                <FileText className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                                    {isDraft
+                                        ? `Facture #${invoice.id}`
+                                        : `Facture ${invoice.formatted_no}`}
+                                </h1>
+                                <p className="text-gray-600">{invoice.name}</p>
+                            </div>
+                        </div>
+                        <span
+                            className={`px-4 py-2 rounded-xl text-sm font-semibold ${
+                                isDraft
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : 'bg-green-100 text-green-700'
+                            }`}
                         >
-                            <input
-                                type="hidden"
-                                name="invoice_id"
-                                value={invoice.id}
-                            />
-                            <button
-                                type="submit"
-                                className="px-2 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                            >
-                                Oui
-                            </button>
-                        </form>
-                        <button
-                            className="px-2 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300"
-                            onClick={() => setShowConfirm(false)}
-                        >
-                            Annuler
-                        </button>
+                            {isDraft ? '📝 Provisoire' : '✅ Finalisée'}
+                        </span>
                     </div>
-                )}
 
-                {!isDraft && (
-                    <span className="text-sm text-gray-500 italic">
-                        Cette facture est finalisée et ne peut plus être
-                        modifiée
-                    </span>
-                )}
+                    {/* Informations de la facture */}
+                    <div className="grid md:grid-cols-3 gap-4 mb-6 pb-6 border-b border-gray-200">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <User className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-600">Client</p>
+                                <p className="font-semibold text-gray-900">
+                                    {client?.company_name ||
+                                        `${client?.firstname} ${client?.lastname}`}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <Calendar className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-600">
+                                    Date de création
+                                </p>
+                                <p className="font-semibold text-gray-900">
+                                    {formatDateLong(invoice.created_at)}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <span className="text-lg font-bold text-green-600">
+                                    €
+                                </span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-600">
+                                    Montant total
+                                </p>
+                                <p className="font-bold text-xl text-gray-900">
+                                    {formatPriceFromCents(invoice.total_cents)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                            onClick={download}
+                        >
+                            <Download className="w-5 h-5" />
+                            Télécharger le PDF
+                        </button>
+
+                        {isDraft && !showConfirm && (
+                            <>
+                                <button
+                                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                                    onClick={() => setShowConfirm(true)}
+                                >
+                                    <Check className="w-5 h-5" />
+                                    Finaliser la facture
+                                </button>
+                                <button
+                                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                                    onClick={() =>
+                                        router.push(
+                                            `/invoices/${invoice.id}/edit`
+                                        )
+                                    }
+                                >
+                                    <Edit className="w-5 h-5" />
+                                    Modifier
+                                </button>
+                            </>
+                        )}
+
+                        {showConfirm && (
+                            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-6 py-3">
+                                <AlertCircle className="w-5 h-5 text-amber-600" />
+                                <span className="text-sm font-medium text-amber-900">
+                                    Confirmer la finalisation ?
+                                </span>
+                                <form
+                                    action={finalizeInvoice}
+                                    className="flex gap-2"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="invoice_id"
+                                        value={invoice.id}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                                    >
+                                        Oui
+                                    </button>
+                                </form>
+                                <button
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition-colors"
+                                    onClick={() => setShowConfirm(false)}
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                        )}
+
+                        {!isDraft && (
+                            <div className="flex items-center gap-2 text-gray-500 italic bg-gray-50 px-4 py-3 rounded-xl">
+                                <AlertCircle className="w-5 h-5" />
+                                <span className="text-sm">
+                                    Cette facture est finalisée et ne peut plus
+                                    être modifiée
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Prévisualisation PDF */}
+                <div className="bg-white rounded-2xl shadow-lg p-2 overflow-hidden">
+                    <div className="h-[80vh] rounded-xl overflow-hidden">
+                        <PDFViewer width="100%" height="100%" showToolbar>
+                            <InvoicePdf
+                                invoice={invoice}
+                                items={items}
+                                emitter={profile}
+                                client={client}
+                                theme={invoice.pdf_overrides ?? {}}
+                            />
+                        </PDFViewer>
+                    </div>
+                </div>
             </div>
-            <div className="h-[80vh] border rounded overflow-hidden">
-                <PDFViewer width="100%" height="100%" showToolbar>
-                    <InvoicePdf
-                        invoice={invoice}
-                        items={items}
-                        emitter={profile}
-                        client={client}
-                        theme={invoice.pdf_overrides ?? {}}
-                    />
-                </PDFViewer>
-            </div>
-        </main>
+        </AdLayout>
     )
 }

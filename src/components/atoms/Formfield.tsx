@@ -54,6 +54,15 @@ export const Formfield = ({
                                 }
                                 className="border border-darkGray rounded-md p-2 w-full"
                                 disabled={disabled}
+                                step={type === 'number' ? 'any' : undefined}
+                                onChange={(event) =>
+                                    field.onChange(
+                                        type === 'number' &&
+                                            event.target.value !== ''
+                                            ? Number(event.target.value)
+                                            : event.target.value
+                                    )
+                                }
                             />
                             {type === 'password' && (
                                 <Button

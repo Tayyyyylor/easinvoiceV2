@@ -1,5 +1,5 @@
-import { CancelPayment } from '@/components/subscription/CancelPayment'
+import { redirect } from 'next/navigation'
 
-export default async function CancelPage() {
-    return <CancelPayment />
+export default function LegacyPage() {
+    redirect('/dashboard')
 }

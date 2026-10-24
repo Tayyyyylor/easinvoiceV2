@@ -1,10 +1,5 @@
-import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
-export default function ConfirmPage() {
-    return (
-        <>
-            <h2>Compte confirmé ! Vous pouvez maintenant vous connecter.</h2>
-            <Link href="/login">Se connecter</Link>
-        </>
-    )
+export default function LegacyPage() {
+    redirect('/dashboard')
 }

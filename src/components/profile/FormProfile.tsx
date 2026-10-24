@@ -6,11 +6,11 @@ import { Form } from '../ui/form'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import { Formfield } from '../atoms/Formfield'
-import { uploadLogo } from '@/utils/supabase/storage'
-import { useAuth } from '@/contexts/useAuth'
+import { readLogo } from '@/lib/local-logo'
 import Image from 'next/image'
 import { updateProfile } from '@/app/(app)/profile/action'
 import { AdLayout } from '../layouts/AdLayout'
+import { Landmark } from 'lucide-react'
 
 const formSchema = z.object({
     firstname: z.string().optional(),
@@ -24,6 +24,10 @@ const formSchema = z.object({
     logo_url: z.string().optional(),
     capital: z.number().optional(),
     siret: z.string().optional(),
+    bank_account_holder: z.string().optional(),
+    bank_name: z.string().optional(),
+    iban: z.string().optional(),
+    bic: z.string().optional(),
 })
 
 type ProfileFormData = z.infer<typeof formSchema>
@@ -33,12 +37,13 @@ interface FormProfileProps {
 }
 
 export const FormProfile = ({ initialData }: FormProfileProps) => {
-    const { user } = useAuth()
     const [isUploading, setIsUploading] = React.useState(false)
     const [previewUrl, setPreviewUrl] = React.useState(
         initialData?.logo_url || ''
     )
     const [uploadError, setUploadError] = React.useState('')
+    const [saveError, setSaveError] = React.useState('')
+    const [isSaving, setIsSaving] = React.useState(false)
     const fileInputRef = React.useRef<HTMLInputElement>(null)
 
     const form = useForm<ProfileFormData>({
@@ -55,6 +60,10 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
             logo_url: initialData?.logo_url || '',
             capital: initialData?.capital || 0,
             siret: initialData?.siret || '',
+            bank_account_holder: initialData?.bank_account_holder || '',
+            bank_name: initialData?.bank_name || '',
+            iban: initialData?.iban || '',
+            bic: initialData?.bic || '',
         },
     })
 
@@ -62,14 +71,14 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
         const file = e.target.files?.[0]
-        if (!file || !user) return
+        if (!file) return
 
         setUploadError('')
 
         try {
             setIsUploading(true)
-            const url = await uploadLogo(file, user.id)
-            const urlWithTimestamp = `${url}?t=${Date.now()}`
+            const url = await readLogo(file)
+            const urlWithTimestamp = url
 
             form.setValue('logo_url', url)
             form.clearErrors('logo_url')
@@ -90,11 +99,27 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
     const handleSubmit = async (formData: FormData) => {
         // Ajouter le logo_url s'il existe
         const logoUrl = form.getValues('logo_url')
-        if (logoUrl) {
-            formData.set('logo_url', logoUrl)
-        }
+        formData.set('logo_url', logoUrl || '')
 
-        await updateProfile(formData)
+        setSaveError('')
+        setIsSaving(true)
+        try {
+            await updateProfile(formData)
+        } catch (cause) {
+            if (
+                cause instanceof Error &&
+                'digest' in cause &&
+                String(cause.digest).startsWith('NEXT_REDIRECT')
+            )
+                throw cause
+            setSaveError(
+                cause instanceof Error
+                    ? cause.message
+                    : 'Impossible de sauvegarder le profil.'
+            )
+        } finally {
+            setIsSaving(false)
+        }
     }
 
     return (
@@ -131,6 +156,14 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
 
                 <Form {...form}>
                     <form action={handleSubmit} className="space-y-6">
+                        {saveError && (
+                            <p
+                                role="alert"
+                                className="rounded-lg bg-red-50 p-4 text-red-700"
+                            >
+                                {saveError}
+                            </p>
+                        )}
                         {/* Section Logo */}
                         <div className="bg-white rounded-2xl shadow-md p-6">
                             <div className="flex items-center gap-3 mb-6">
@@ -154,8 +187,7 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
                                         Logo de l&apos;entreprise
                                     </h2>
                                     <p className="text-sm text-gray-600">
-                                        Formats acceptés : PNG, JPG, WEBP (max
-                                        2MB)
+                                        Formats acceptés : PNG, JPG (max 2MB)
                                     </p>
                                 </div>
                             </div>
@@ -183,7 +215,7 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
                                                         ''
                                                 }
                                             }}
-                                            disabled={isUploading}
+                                            disabled={isUploading || isSaving}
                                         >
                                             Changer le logo
                                         </Button>
@@ -194,7 +226,7 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
                                         <input
                                             ref={fileInputRef}
                                             type="file"
-                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            accept="image/png,image/jpeg"
                                             onChange={handleImageUpload}
                                             className="block w-full text-sm text-gray-500
                                         file:mr-4 file:py-2 file:px-4
@@ -203,7 +235,7 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
                                         file:bg-blue-50 file:text-blue-700
                                         hover:file:bg-blue-100
                                         disabled:opacity-50 disabled:cursor-not-allowed"
-                                            disabled={isUploading}
+                                            disabled={isUploading || isSaving}
                                         />
                                         {isUploading && (
                                             <p className="mt-2 text-sm text-gray-500">
@@ -396,15 +428,68 @@ export const FormProfile = ({ initialData }: FormProfileProps) => {
                             </div>
                         </div>
 
+                        <section
+                            className="bg-white rounded-2xl shadow-md p-6"
+                            aria-labelledby="bank-details-title"
+                        >
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Landmark className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h2
+                                        id="bank-details-title"
+                                        className="text-xl font-bold text-gray-900"
+                                    >
+                                        Coordonnées bancaires
+                                    </h2>
+                                    <p className="text-sm text-gray-600">
+                                        Facultatif, pour le règlement de vos
+                                        factures par virement.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <Formfield
+                                    form={form}
+                                    name="bank_account_holder"
+                                    label="Titulaire du compte"
+                                    placeholder="Nom du titulaire"
+                                />
+                                <Formfield
+                                    form={form}
+                                    name="bank_name"
+                                    label="Banque"
+                                    placeholder="Nom de la banque"
+                                />
+                                <Formfield
+                                    form={form}
+                                    name="iban"
+                                    label="IBAN"
+                                    placeholder="Votre IBAN"
+                                />
+                                <Formfield
+                                    form={form}
+                                    name="bic"
+                                    label="BIC / SWIFT"
+                                    placeholder="Votre code BIC"
+                                />
+                            </div>
+                            <p className="mt-4 text-sm text-gray-600">
+                                Ces coordonnées apparaissent sur vos factures et
+                                sont conservées lors de leur finalisation.
+                            </p>
+                        </section>
+
                         {/* Actions */}
                         <div className="flex justify-end gap-4 pt-4">
                             <Button
                                 type="submit"
-                                disabled={isUploading}
+                                disabled={isUploading || isSaving}
                                 className="px-8 py-6 text-lg bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 shadow-lg"
                             >
-                                {isUploading
-                                    ? 'Upload en cours...'
+                                {isUploading || isSaving
+                                    ? 'Enregistrement...'
                                     : '💾 Mettre à jour'}
                             </Button>
                         </div>

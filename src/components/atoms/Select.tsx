@@ -38,7 +38,6 @@ export const Select = ({
                     </option>
                 ))}
             </select>
-            <input type="hidden" name={name} value={value} />
         </div>
     )
 }

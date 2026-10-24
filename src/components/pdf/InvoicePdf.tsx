@@ -27,22 +27,36 @@ export function InvoicePdf({
 }: InvoicePdfProps) {
     const primaryColor = theme.primaryColor ?? '#111827'
     const showTax = theme.hideTax !== true
+    const comfortable = items.length <= 6
 
     const styles = StyleSheet.create({
-        page: { padding: 32, fontSize: 11 },
-        subtitle: { fontSize: 14, color: primaryColor, marginBottom: 12 },
+        page: {
+            padding: 32,
+            fontSize: comfortable ? 11 : 9.5,
+            lineHeight: 1.3,
+        },
+        body: { flexGrow: 1 },
+        footer: {
+            paddingTop: 16,
+            borderTopWidth: 1,
+            borderTopColor: '#e5e7eb',
+            marginTop: 16,
+        },
+        subtitle: { fontSize: 11, color: primaryColor, marginBottom: 6 },
         personalInfos: {
-            marginTop: 12,
+            marginTop: 6,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
             marginBottom: 20,
+            gap: 18,
         },
         th: { fontWeight: 700 },
         section: {
-            marginBottom: 20,
+            marginBottom: 16,
         },
+        terms: { marginTop: 10, fontSize: 9 },
     })
 
     const isFinalized = invoice.status === 'published'
@@ -52,23 +66,42 @@ export function InvoicePdf({
     return (
         <Document>
             <Page size="A4" style={styles.page}>
-                <Header emitter={emitter} title={title} />
-                <View>
+                <View style={styles.body}>
+                    <Header
+                        emitter={emitter}
+                        title={title}
+                        date={invoice.finalized_at ?? invoice.created_at}
+                        compact
+                    />
                     <View style={styles.personalInfos}>
-                        <Emitter emitter={emitter} />
-                        <Recipient client={client} />
+                        <Emitter emitter={emitter} compact />
+                        <Recipient client={client} compact />
                     </View>
                     <View>
-                        <View style={styles.section}>
-                            <Text style={[styles.subtitle, styles.th]}>
-                                Description
-                            </Text>
-                            <Text>{invoice?.description}</Text>
-                        </View>
-                        <Desc items={items} showTax={showTax} />
+                        {invoice.description && (
+                            <View style={styles.section}>
+                                <Text style={[styles.subtitle, styles.th]}>
+                                    Description
+                                </Text>
+                                <Text>{invoice?.description}</Text>
+                            </View>
+                        )}
+                        <Desc
+                            items={items}
+                            showTax={showTax}
+                            compact
+                            spacious={comfortable}
+                        />
                     </View>
-                    <Totals item={invoice} />
-                    <Payment invoice={invoice} />
+                </View>
+                <View style={styles.footer}>
+                    <View wrap={false}>
+                        <Totals item={invoice} compact />
+                        <Payment invoice={invoice} emitter={emitter} />
+                    </View>
+                    {invoice.terms && (
+                        <Text style={styles.terms}>{invoice.terms}</Text>
+                    )}
                 </View>
             </Page>
         </Document>

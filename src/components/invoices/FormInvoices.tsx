@@ -54,10 +54,12 @@ export const FormInvoices = ({
     initialData,
 }: FormInvoicesProps) => {
     const [showNewClientForm, setShowNewClientForm] = useState(false)
-    const [selectValue, setSelectValue] = useState('')
+    const [selectValue, setSelectValue] = useState(
+        initialData?.invoice.client_id.toString() || ''
+    )
     const [clients, setClients] = useState(initialClients)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    console.log('initialData', initialData)
+    const [submitError, setSubmitError] = useState('')
     const form = useForm<FormInvoiceValues>({
         resolver: zodResolver(createInvoiceSchema),
         defaultValues: {
@@ -148,6 +150,7 @@ export const FormInvoices = ({
                             // Empêcher la double soumission
                             if (isSubmitting) return
                             setIsSubmitting(true)
+                            setSubmitError('')
 
                             try {
                                 // Empêcher la soumission si aucun client n'est sélectionné
@@ -179,6 +182,19 @@ export const FormInvoices = ({
                                     await createInvoice(formData)
                                 }
                             } catch (error) {
+                                if (
+                                    error instanceof Error &&
+                                    'digest' in error &&
+                                    String(error.digest).startsWith(
+                                        'NEXT_REDIRECT'
+                                    )
+                                )
+                                    throw error
+                                setSubmitError(
+                                    error instanceof Error
+                                        ? error.message
+                                        : 'Impossible de sauvegarder le document.'
+                                )
                                 console.error(
                                     'Erreur lors de la soumission:',
                                     error
@@ -187,6 +203,14 @@ export const FormInvoices = ({
                             }
                         }}
                     >
+                        {submitError && (
+                            <p
+                                role="alert"
+                                className="rounded-lg bg-red-50 p-4 text-red-700"
+                            >
+                                {submitError}
+                            </p>
+                        )}
                         {/* Section Client */}
                         <div className="bg-white rounded-2xl shadow-md p-6">
                             <div className="flex items-center gap-3 mb-6">
@@ -354,6 +378,7 @@ export const FormInvoices = ({
                                         name="currency"
                                         label="Devise"
                                         placeholder="EUR"
+                                        disabled
                                     />
                                     <Formfield
                                         form={form}

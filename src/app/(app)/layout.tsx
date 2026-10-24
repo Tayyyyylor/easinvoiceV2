@@ -1,27 +1,21 @@
 import { AuthProvider } from '@/contexts/useAuth'
-import { createClient } from '@/utils/supabase/server'
+import { getProfile } from '@/lib/local-store'
 import { redirect } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ProtectedLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    let profile: Profile
+    try {
+        profile = await getProfile()
+    } catch (error) {
+        console.error('Lecture des données locales impossible :', error)
+        redirect('/recovery')
+    }
 
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-    return (
-        <AuthProvider user={user} profile={profile}>
-            {children}
-        </AuthProvider>
-    )
+    return <AuthProvider profile={profile}>{children}</AuthProvider>
 }

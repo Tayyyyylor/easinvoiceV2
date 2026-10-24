@@ -64,6 +64,7 @@ export const ItemsLineForm = ({
                             name={`lines.${i}.quantity`}
                             label="Qté"
                             placeholder="1"
+                            type="number"
                         />
                     </div>
                     <div className="md:col-span-2">
@@ -72,6 +73,7 @@ export const ItemsLineForm = ({
                             name={`lines.${i}.unit_price`}
                             label="Prix unitaire (€)"
                             placeholder="0"
+                            type="number"
                         />
                     </div>
                     <div className="md:col-span-1">
@@ -80,6 +82,7 @@ export const ItemsLineForm = ({
                             name={`lines.${i}.tax_rate`}
                             label="TVA %"
                             placeholder="20"
+                            type="number"
                             disabled={tvaNonApplicable}
                         />
                     </div>
@@ -87,6 +90,8 @@ export const ItemsLineForm = ({
                         <Button
                             type="button"
                             variant="outline"
+                            disabled={fields.length <= 1}
+                            aria-label={`Supprimer la ligne ${i + 1}`}
                             onClick={() => remove(i)}
                         >
                             -

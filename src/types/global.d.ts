@@ -10,6 +10,10 @@ interface Profile {
     capital: number
     siret: string
     logo_url?: string
+    bank_account_holder?: string
+    bank_name?: string
+    iban?: string
+    bic?: string
 }
 interface Clients {
     id: number
@@ -44,7 +48,10 @@ interface BaseDocument {
     total_cents: number
     terms: string
     created_at: string
-    pdf_overrides: React.Node
+    finalized_at?: string
+    emitter_snapshot?: Profile
+    client_snapshot?: Clients
+    pdf_overrides: { primaryColor?: string; hideTax?: boolean }
     formatted_no: string
 }
 

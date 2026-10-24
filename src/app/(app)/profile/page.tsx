@@ -1,14 +1,8 @@
 import { FormProfile } from '@/components/profile/FormProfile'
-import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
+import { getProfile } from '@/lib/local-store'
 
 export default async function ProfilePage() {
-    const { user, supabase } = await getAuthenticatedUser()
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+    const profile = await getProfile()
 
     return (
         <div className="container mx-auto py-8">

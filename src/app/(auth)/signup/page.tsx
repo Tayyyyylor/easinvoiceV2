@@ -1,5 +1,5 @@
-import Signup from '@/components/pages/Signup'
+import { redirect } from 'next/navigation'
 
-export default function SignupPage() {
-    return <Signup />
+export default function LegacyPage() {
+    redirect('/dashboard')
 }

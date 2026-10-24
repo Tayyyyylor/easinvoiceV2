@@ -1,42 +1,30 @@
 import { EditInvoice } from '@/components/pages/invoices/EditInvoice'
-import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
+import { getDocument, listClients } from '@/lib/local-store'
+import { notFound, redirect } from 'next/navigation'
 
 export default async function EditInvoicePage({
     params,
 }: {
     params: Promise<{ id: string }>
 }) {
-    const { user, supabase } = await getAuthenticatedUser()
-
-    const { data: clients, error: clientsError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
-
     const { id } = await params
-    const invoiceId = Number(id)
+    const recordId = Number(id)
+    if (!Number.isSafeInteger(recordId) || recordId <= 0) notFound()
+    const document = await getDocument('invoice', recordId)
+    if (!document) notFound()
+    if (document.status !== 'draft') redirect(`/invoices/${document.id}`)
+    const clients = await listClients()
 
-    const { data: invoice, error: invoiceError } = await supabase
-        .from('invoices')
-        .select(
-            `
-                *,
-                invoice_items (*)
-            `
-        )
-        .eq('id', invoiceId)
-        .eq('owner_id', user.id)
-        .single()
-
-    if (clientsError || invoiceError || !invoice) {
-        console.error('fetch clients error', clientsError)
-        console.error('fetch invoice error', invoiceError)
-    }
     return (
         <EditInvoice
-            initialData={{ invoice, items: invoice.invoice_items ?? [] }}
-            clients={clients ?? []}
+            initialData={{
+                invoice: document,
+                items: document.items.map((item) => ({
+                    ...item,
+                    invoice_id: document.id,
+                })),
+            }}
+            clients={clients}
         />
     )
 }

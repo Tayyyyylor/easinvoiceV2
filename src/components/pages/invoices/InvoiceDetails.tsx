@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { AdLayout } from '@/components/layouts/AdLayout'
 import {
     Download,
+    Loader2,
     Check,
     Edit,
     AlertCircle,
@@ -20,6 +21,7 @@ import {
     Calendar,
 } from 'lucide-react'
 import { formatDateLong, formatPriceFromCents } from '@/helpers/formatters'
+import { downloadPdf } from '@/helpers/downloadPdf'
 
 export const InvoiceDetails = ({
     invoice,
@@ -32,20 +34,31 @@ export const InvoiceDetails = ({
 }) => {
     const router = useRouter()
     const { profile } = useAuth()
+    const documentClient = invoice.client_snapshot ?? client
+    const emitter = invoice.emitter_snapshot ?? profile
     const [showConfirm, setShowConfirm] = useState(false)
 
+    const [downloading, setDownloading] = useState(false)
+    const [downloadError, setDownloadError] = useState('')
+
     const download = async () => {
-        const res = await fetch(`/api/invoices/${invoice.id}/pdf`, {
-            cache: 'no-store',
-        })
-        if (!res.ok) return
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `facture-${invoice.formatted_no}.pdf`
-        a.click()
-        URL.revokeObjectURL(url)
+        if (downloading) return
+        setDownloading(true)
+        setDownloadError('')
+        try {
+            await downloadPdf(
+                `/api/invoices/${invoice.id}/pdf`,
+                `facture-${invoice.formatted_no || invoice.id}.pdf`
+            )
+        } catch (error) {
+            setDownloadError(
+                error instanceof Error
+                    ? error.message
+                    : 'Le téléchargement du PDF a échoué.'
+            )
+        } finally {
+            setDownloading(false)
+        }
     }
 
     const isDraft = invoice.status === 'draft'
@@ -64,7 +77,7 @@ export const InvoiceDetails = ({
                                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                                     {isDraft
                                         ? `Facture #${invoice.id}`
-                                        : `Facture ${invoice.formatted_no}`}
+                                        : `Facture ${invoice.formatted_no || invoice.id}`}
                                 </h1>
                                 <p className="text-gray-600">{invoice.name}</p>
                             </div>
@@ -89,8 +102,8 @@ export const InvoiceDetails = ({
                             <div>
                                 <p className="text-sm text-gray-600">Client</p>
                                 <p className="font-semibold text-gray-900">
-                                    {client?.company_name ||
-                                        `${client?.firstname} ${client?.lastname}`}
+                                    {documentClient?.company_name ||
+                                        `${documentClient?.firstname} ${documentClient?.lastname}`}
                                 </p>
                             </div>
                         </div>
@@ -127,11 +140,19 @@ export const InvoiceDetails = ({
                     {/* Actions */}
                     <div className="flex flex-wrap gap-3">
                         <button
-                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-60 disabled:cursor-wait"
                             onClick={download}
+                            disabled={downloading}
+                            aria-busy={downloading}
                         >
-                            <Download className="w-5 h-5" />
-                            Télécharger le PDF
+                            {downloading ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <Download className="w-5 h-5" />
+                            )}
+                            {downloading
+                                ? 'Génération du PDF…'
+                                : 'Télécharger le PDF'}
                         </button>
 
                         {isDraft && !showConfirm && (
@@ -198,6 +219,14 @@ export const InvoiceDetails = ({
                             </div>
                         )}
                     </div>
+                    {downloadError && (
+                        <p
+                            role="alert"
+                            className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+                        >
+                            {downloadError}
+                        </p>
+                    )}
                 </div>
 
                 {/* Prévisualisation PDF */}
@@ -207,8 +236,8 @@ export const InvoiceDetails = ({
                             <InvoicePdf
                                 invoice={invoice}
                                 items={items}
-                                emitter={profile}
-                                client={client}
+                                emitter={emitter}
+                                client={documentClient}
                                 theme={invoice.pdf_overrides ?? {}}
                             />
                         </PDFViewer>

@@ -1,18 +1,30 @@
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 
-export const Recipient = ({ client }: { client?: Clients }) => {
+export const Recipient = ({
+    client,
+    compact = false,
+}: {
+    client?: Clients
+    compact?: boolean
+}) => {
     const styles = StyleSheet.create({
-        container: { width: '40%' },
-        th: { fontSize: 16, marginBottom: 12, fontWeight: 700 },
+        container: compact ? { flex: 1 } : { width: '40%' },
+        th: {
+            fontSize: compact ? 11 : 16,
+            marginBottom: compact ? 6 : 12,
+            fontWeight: 700,
+        },
         label: { color: 'grey' },
         bold: { fontWeight: 700 },
         rowInfos: {
             display: 'flex',
             flexDirection: 'row',
-            marginBottom: 6,
+            marginBottom: compact ? 4 : 6,
+            gap: compact ? 4 : 0,
         },
-        labelCol: { width: 70 },
+        labelCol: { width: 70, flexShrink: 0 },
+        value: compact ? { flex: 1 } : {},
     })
     const data = [
         {
@@ -22,7 +34,9 @@ export const Recipient = ({ client }: { client?: Clients }) => {
         },
         {
             label: 'Nom :',
-            value: `${client?.firstname} ${client?.lastname}`,
+            value: [client?.firstname, client?.lastname]
+                .filter(Boolean)
+                .join(' '),
             bold: true,
         },
         {
@@ -31,12 +45,14 @@ export const Recipient = ({ client }: { client?: Clients }) => {
         },
         {
             label: 'Code postal :',
-            value: `${client?.zipcode} ${client?.city}`,
+            value: [client?.zipcode, client?.city].filter(Boolean).join(' '),
         },
         {
             label: 'Pays :',
             value: client?.country,
         },
+        { label: 'SIRET :', value: client?.siret },
+        { label: 'Complément :', value: client?.additional_address },
     ]
     return (
         <View style={styles.container}>
@@ -48,7 +64,12 @@ export const Recipient = ({ client }: { client?: Clients }) => {
                             <View style={styles.labelCol}>
                                 <Text style={styles.label}>{item.label}</Text>
                             </View>
-                            <Text style={item.bold ? styles.bold : {}}>
+                            <Text
+                                style={[
+                                    styles.value,
+                                    item.bold ? styles.bold : {},
+                                ]}
+                            >
                                 {item.value}
                             </Text>
                         </View>

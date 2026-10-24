@@ -1,5 +1,5 @@
-import FormAccount from '@/components/endAccount/FormAccount'
+import { redirect } from 'next/navigation'
 
-export default async function FinalizeAccountPage() {
-    return <FormAccount />
+export default function FinalizeAccountPage() {
+    redirect('/profile')
 }

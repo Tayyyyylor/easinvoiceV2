@@ -4,6 +4,7 @@ import { Emitter } from './Emitter'
 import { Recipient } from './Recipient'
 import { Desc } from './Desc'
 import { Totals } from './Totals'
+import { Header } from './Header'
 
 type QuotePdfProps = {
     quote: Quotes
@@ -48,15 +49,16 @@ export function QuotePdf({
     const isFinalized = quote.status === 'published'
     const title = isFinalized
         ? quote.formatted_no
-        : `Facture provisoire ${quote.name ? `(${quote.name})` : ''}`
+        : `Devis provisoire ${quote.name ? `(${quote.name})` : ''}`
 
     return (
         <Document>
             <Page size="A4" style={styles.page}>
-                <Text style={styles.title}>{title}</Text>
-                <Text style={styles.date}>
-                    {new Date().toLocaleDateString('fr-FR')}
-                </Text>
+                <Header
+                    emitter={emitter}
+                    title={title}
+                    date={quote.finalized_at ?? quote.created_at}
+                />
 
                 <View>
                     <View style={styles.personalInfos}>
@@ -73,6 +75,11 @@ export function QuotePdf({
                         <Desc items={items} showTax={showTax} />
                     </View>
                     <Totals item={quote} />
+                    <Text>
+                        Validité : {quote.validity_days} jours à compter de la
+                        date du devis.
+                    </Text>
+                    {quote.terms && <Text>{quote.terms}</Text>}
                 </View>
             </Page>
         </Document>

@@ -1,42 +1,30 @@
 import { EditQuote } from '@/components/pages/quotes/EditQuote'
-import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
+import { getDocument, listClients } from '@/lib/local-store'
+import { notFound, redirect } from 'next/navigation'
 
 export default async function EditQuotePage({
     params,
 }: {
     params: Promise<{ id: string }>
 }) {
-    const { user, supabase } = await getAuthenticatedUser()
-
-    const { data: clients, error: clientsError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
-
     const { id } = await params
-    const quoteId = Number(id)
+    const recordId = Number(id)
+    if (!Number.isSafeInteger(recordId) || recordId <= 0) notFound()
+    const document = await getDocument('quote', recordId)
+    if (!document) notFound()
+    if (document.status !== 'draft') redirect(`/quotes/${document.id}`)
+    const clients = await listClients()
 
-    const { data: quote, error: quoteError } = await supabase
-        .from('quotes')
-        .select(
-            `
-                *,
-                quote_items (*)
-            `
-        )
-        .eq('id', quoteId)
-        .eq('owner_id', user.id)
-        .single()
-
-    if (clientsError || quoteError || !quote) {
-        console.error('fetch clients error', clientsError)
-        console.error('fetch quote error', quoteError)
-    }
     return (
         <EditQuote
-            initialData={{ quote, items: quote.quote_items ?? [] }}
-            clients={clients ?? []}
+            initialData={{
+                quote: document,
+                items: document.items.map((item) => ({
+                    ...item,
+                    quote_id: document.id,
+                })),
+            }}
+            clients={clients}
         />
     )
 }

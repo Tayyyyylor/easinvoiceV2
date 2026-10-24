@@ -2,16 +2,22 @@ import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import React from 'react'
 import { euro } from '@/helpers/pdf'
 
-export const Totals = ({ item }: { item: Invoices | Quotes }) => {
+export const Totals = ({
+    item,
+    compact = false,
+}: {
+    item: Invoices | Quotes
+    compact?: boolean
+}) => {
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: compact ? 3 : 6,
             justifyContent: 'flex-end',
             alignItems: 'flex-end',
         },
-        subtitle: { fontSize: 12, fontWeight: 600 },
+        subtitle: { fontSize: compact ? 9.5 : 12, fontWeight: 600 },
         row: {
             display: 'flex',
             flexDirection: 'row',
@@ -34,7 +40,7 @@ export const Totals = ({ item }: { item: Invoices | Quotes }) => {
             {item.tax_cents > 0 && (
                 <View style={styles.row}>
                     <View style={styles.labelCol}>
-                        <Text style={styles.subtitle}>TVA(%)</Text>
+                        <Text style={styles.subtitle}>TVA</Text>
                     </View>
                     <View style={styles.valueCol}>
                         <Text>{euro((item?.tax_cents ?? 0) / 100)}</Text>

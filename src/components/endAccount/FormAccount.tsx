@@ -7,8 +7,7 @@ import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import { finalizeAccount } from '@/app/(app)/finalizeAccount/action'
 import { Formfield } from '../atoms/Formfield'
-import { uploadLogo } from '@/utils/supabase/storage'
-import { useAuth } from '@/contexts/useAuth'
+import { readLogo } from '@/lib/local-logo'
 import Image from 'next/image'
 import { AdLayout } from '../layouts/AdLayout'
 
@@ -27,7 +26,6 @@ const formSchema = z.object({
 })
 
 const FormAccount = () => {
-    const { user } = useAuth()
     const [isUploading, setIsUploading] = React.useState(false)
     const [previewUrl, setPreviewUrl] = React.useState('')
     const [uploadError, setUploadError] = React.useState('')
@@ -53,7 +51,7 @@ const FormAccount = () => {
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
         const file = e.target.files?.[0]
-        if (!file || !user) return
+        if (!file) return
 
         // Reset les erreurs précédentes
         setUploadError('')
@@ -62,10 +60,10 @@ const FormAccount = () => {
             setIsUploading(true)
 
             // Upload du fichier
-            const url = await uploadLogo(file, user.id)
+            const url = await readLogo(file)
 
             // Ajouter un timestamp pour forcer le rechargement (cache busting)
-            const urlWithTimestamp = `${url}?t=${Date.now()}`
+            const urlWithTimestamp = url
 
             // Mise à jour du formulaire (on garde l'URL sans timestamp pour la base de données)
             form.setValue('logo_url', url)
@@ -167,8 +165,7 @@ const FormAccount = () => {
                                         Logo de l&apos;entreprise
                                     </h2>
                                     <p className="text-sm text-gray-600">
-                                        Formats acceptés : PNG, JPG, WEBP (max
-                                        2MB)
+                                        Formats acceptés : PNG, JPG (max 2MB)
                                     </p>
                                 </div>
                             </div>
@@ -207,7 +204,7 @@ const FormAccount = () => {
                                         <input
                                             ref={fileInputRef}
                                             type="file"
-                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            accept="image/png,image/jpeg"
                                             onChange={handleImageUpload}
                                             className="block w-full text-sm text-gray-500
                                                 file:mr-4 file:py-2 file:px-4

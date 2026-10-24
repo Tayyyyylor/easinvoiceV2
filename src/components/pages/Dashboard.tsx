@@ -1,11 +1,8 @@
 'use client'
-import { Popup } from '../endAccount/Popup'
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Headband } from '../endAccount/Headband'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/useAuth'
-import { useSubscription } from '@/hooks/useSubscription'
-import { Button } from '../ui/button'
 import { AdLayout } from '../layouts/AdLayout'
 import {
     FileText,
@@ -29,14 +26,9 @@ export default function Dashboard({
     quotes,
     invoices,
 }: DashboardProps) {
-    const [showPopup, setShowPopup] = useState(true)
-    const { isSubscribed } = useSubscription()
     const { profile } = useAuth()
     const router = useRouter()
     const isProfileCompleted = profile?.firstname && profile?.lastname
-    const handleClick = () => {
-        setShowPopup(true)
-    }
 
     // Calcul des statistiques
     const stats = useMemo(() => {
@@ -69,9 +61,7 @@ export default function Dashboard({
             icon: <FilePlus className="w-8 h-8" />,
             gradient: 'from-blue-500 to-blue-600',
             hoverGradient: 'hover:from-blue-600 hover:to-blue-700',
-            onClick: isProfileCompleted
-                ? () => router.push('/invoices/create')
-                : handleClick,
+            onClick: () => router.push('/invoices/create'),
         },
         {
             title: 'Créer un devis',
@@ -79,9 +69,7 @@ export default function Dashboard({
             icon: <FileBarChart className="w-8 h-8" />,
             gradient: 'from-purple-500 to-purple-600',
             hoverGradient: 'hover:from-purple-600 hover:to-purple-700',
-            onClick: isProfileCompleted
-                ? () => router.push('/quotes/create')
-                : handleClick,
+            onClick: () => router.push('/quotes/create'),
         },
         {
             title: 'Ajouter un client',
@@ -89,27 +77,14 @@ export default function Dashboard({
             icon: <UserPlus className="w-8 h-8" />,
             gradient: 'from-green-500 to-green-600',
             hoverGradient: 'hover:from-green-600 hover:to-green-700',
-            onClick: isProfileCompleted
-                ? () => router.push('/clients/create')
-                : handleClick,
+            onClick: () => router.push('/clients/create'),
         },
     ]
 
     return (
         <AdLayout>
             <div className="space-y-6">
-                {/* Headband et Premium Button */}
                 {!isProfileCompleted && <Headband />}
-                {!isSubscribed && (
-                    <div className="flex justify-center">
-                        <Button
-                            onClick={() => router.push('/billing')}
-                            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-8 py-6 text-lg shadow-lg"
-                        >
-                            ✨ Passez Premium !
-                        </Button>
-                    </div>
-                )}
 
                 {/* Welcome Section */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
@@ -238,11 +213,7 @@ export default function Dashboard({
                                 Factures récentes
                             </h3>
                             <button
-                                onClick={
-                                    isProfileCompleted
-                                        ? () => router.push('/invoices')
-                                        : handleClick
-                                }
+                                onClick={() => router.push('/invoices')}
                                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                             >
                                 Voir tout →
@@ -294,11 +265,7 @@ export default function Dashboard({
                                 Devis récents
                             </h3>
                             <button
-                                onClick={
-                                    isProfileCompleted
-                                        ? () => router.push('/quotes')
-                                        : handleClick
-                                }
+                                onClick={() => router.push('/quotes')}
                                 className="text-purple-600 hover:text-purple-700 text-sm font-medium"
                             >
                                 Voir tout →
@@ -350,11 +317,7 @@ export default function Dashboard({
                                 Clients récents
                             </h3>
                             <button
-                                onClick={
-                                    isProfileCompleted
-                                        ? () => router.push('/clients')
-                                        : handleClick
-                                }
+                                onClick={() => router.push('/clients')}
                                 className="text-green-600 hover:text-green-700 text-sm font-medium"
                             >
                                 Voir tout →
@@ -392,11 +355,6 @@ export default function Dashboard({
                         </div>
                     </div>
                 </div>
-
-                {/* Popup */}
-                {showPopup && !isProfileCompleted && (
-                    <Popup onClose={() => setShowPopup(false)} />
-                )}
             </div>
         </AdLayout>
     )

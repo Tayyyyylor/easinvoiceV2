@@ -1,6 +1,16 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+:root {
+    --font-geist-sans: Arial, Helvetica, sans-serif;
+    --font-geist-mono: 'Courier New', monospace;
+    color-scheme: light;
+}
+
+body {
+    font-family: var(--font-geist-sans);
+}
+
 @theme {
     --color-background: oklch(100% 0 0);
     --color-foreground: oklch(9% 0 0);
@@ -33,28 +43,4 @@
     --color-redError: #ef4444;
     --color-mainBlue: #2563eb;
     --color-mainBlueLight: #3b82f6;
-}
-
-@media (prefers-color-scheme: dark) {
-    @theme {
-        --color-background: oklch(9% 0 0);
-        --color-foreground: oklch(98% 0 0);
-        --color-card: oklch(9% 0 0);
-        --color-card-foreground: oklch(98% 0 0);
-        --color-popover: oklch(9% 0 0);
-        --color-popover-foreground: oklch(98% 0 0);
-        --color-primary: oklch(98% 0 0);
-        --color-primary-foreground: oklch(9% 0 0);
-        --color-secondary: oklch(14.9% 0 0);
-        --color-secondary-foreground: oklch(98% 0 0);
-        --color-muted: oklch(14.9% 0 0);
-        --color-muted-foreground: oklch(63.9% 0 0);
-        --color-accent: oklch(14.9% 0 0);
-        --color-accent-foreground: oklch(98% 0 0);
-        --color-destructive: oklch(45.1% 0.16 29.2);
-        --color-destructive-foreground: oklch(98% 0 0);
-        --color-border: oklch(14.9% 0 0);
-        --color-input: oklch(14.9% 0 0);
-        --color-ring: oklch(83.1% 0 0);
-    }
 }

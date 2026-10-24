@@ -364,27 +364,57 @@ export const FormClients = ({
                     <form
                         className="space-y-8"
                         action={async (formData) => {
-                            // Si on est en mode édition, ajouter le payload et l'ID
-                            if (initialData?.id) {
-                                const values = form.getValues()
-                                formData.append(
-                                    'payload',
-                                    JSON.stringify(values)
+                            if (isSubmitting) return
+                            setIsSubmitting(true)
+                            setError(null)
+                            try {
+                                // Si on est en mode édition, ajouter le payload et l'ID
+                                if (initialData?.id) {
+                                    const values = form.getValues()
+                                    formData.append(
+                                        'payload',
+                                        JSON.stringify(values)
+                                    )
+                                    formData.append(
+                                        'client_id',
+                                        initialData.id.toString()
+                                    )
+                                    await updateClient(formData)
+                                } else {
+                                    await createAClient(formData)
+                                }
+                            } catch (cause) {
+                                if (
+                                    cause instanceof Error &&
+                                    'digest' in cause &&
+                                    String(cause.digest).startsWith(
+                                        'NEXT_REDIRECT'
+                                    )
                                 )
-                                formData.append(
-                                    'client_id',
-                                    initialData.id.toString()
+                                    throw cause
+                                setError(
+                                    cause instanceof Error
+                                        ? cause.message
+                                        : 'Impossible de sauvegarder le client.'
                                 )
-                                await updateClient(formData)
-                            } else {
-                                await createAClient(formData)
+                            } finally {
+                                setIsSubmitting(false)
                             }
                         }}
                     >
+                        {error && (
+                            <p
+                                role="alert"
+                                className="rounded-lg bg-red-50 p-4 text-red-700"
+                            >
+                                {error}
+                            </p>
+                        )}
                         {formContent}
                         <div className="flex justify-end gap-4 pt-4 max-w-4xl mx-auto px-4">
                             <Button
                                 type="submit"
+                                disabled={isSubmitting}
                                 className="px-8 py-6 text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg"
                             >
                                 {initialData?.id

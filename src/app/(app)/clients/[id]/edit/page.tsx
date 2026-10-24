@@ -1,25 +1,16 @@
 import { EditClient } from '@/components/pages/clients/EditClient'
-import { getAuthenticatedUser } from '@/utils/auth/getAuthenticatedUser'
+import { getClient } from '@/lib/local-store'
+import { notFound } from 'next/navigation'
 
 export default async function EditClientPage({
     params,
 }: {
     params: Promise<{ id: string }>
 }) {
-    const { user, supabase } = await getAuthenticatedUser()
-
     const { id } = await params
-    const clientId = Number(id)
-
-    const { data: client, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', clientId)
-        .eq('owner_id', user.id)
-        .single()
-
-    if (clientError || !client) {
-        console.error('fetch clients error', clientError)
-    }
+    const recordId = Number(id)
+    if (!Number.isSafeInteger(recordId) || recordId <= 0) notFound()
+    const client = await getClient(recordId)
+    if (!client) notFound()
     return <EditClient initialData={client} />
 }

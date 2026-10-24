@@ -1,5 +1,5 @@
-import { Billing } from '@/components/pages/Billing'
+import { redirect } from 'next/navigation'
 
-export default async function BillingPage() {
-    return <Billing />
+export default function LegacyPage() {
+    redirect('/dashboard')
 }

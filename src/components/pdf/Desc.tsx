@@ -5,13 +5,17 @@ import React from 'react'
 export const Desc = ({
     items,
     showTax,
+    compact = false,
+    spacious = false,
 }: {
     items: InvoiceItems[] | QuoteItems[]
     showTax: boolean
+    compact?: boolean
+    spacious?: boolean
 }) => {
     const styles = StyleSheet.create({
         container: {
-            marginBottom: 10,
+            marginBottom: compact ? 8 : 10,
         },
         subtitle: { fontSize: 14, marginBottom: 12 },
         th: { fontWeight: 700 },
@@ -32,6 +36,7 @@ export const Desc = ({
             borderBottomStyle: 'solid',
             paddingVertical: 6,
             paddingHorizontal: 8,
+            fontSize: compact ? 9 : 11,
         },
         tableRow: {
             display: 'flex',
@@ -39,7 +44,10 @@ export const Desc = ({
             borderBottomWidth: 1,
             borderBottomColor: '#e5e7eb',
             borderBottomStyle: 'solid',
-            padding: 8,
+            paddingVertical: compact && !spacious ? 4 : 8,
+            paddingHorizontal: 8,
+            minHeight: spacious ? 52 : 0,
+            alignItems: spacious ? 'center' : 'flex-start',
         },
         cellDescription: { flex: 4 },
         cellType: { flex: 1, fontWeight: 500 },
@@ -50,14 +58,18 @@ export const Desc = ({
     })
     return (
         <View style={styles.container}>
-            <Text style={[styles.subtitle, styles.th]}>Détails</Text>
+            {!compact && (
+                <Text style={[styles.subtitle, styles.th]}>Détails</Text>
+            )}
             {/* Table header */}
             <View style={styles.table}>
                 <View style={styles.tableHeader}>
                     <Text style={styles.cellType}>Type</Text>
                     <Text style={styles.cellDescription}>Description</Text>
                     <Text style={styles.cellQty}>Qté</Text>
-                    <Text style={styles.cellUnit}>Prix Unitaire HT</Text>
+                    <Text style={styles.cellUnit}>
+                        {compact ? 'P.U. HT' : 'Prix Unitaire HT'}
+                    </Text>
                     {showTax && <Text style={styles.cellTax}>TVA</Text>}
                     <Text style={styles.cellTotal}>Total HT</Text>
                 </View>

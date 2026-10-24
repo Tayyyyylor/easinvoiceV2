@@ -1,5 +1,5 @@
-import SuccessPayment from '@/components/subscription/SuccessPayment'
+import { redirect } from 'next/navigation'
 
-export default async function SuccessPage() {
-    return <SuccessPayment />
+export default function LegacyPage() {
+    redirect('/dashboard')
 }

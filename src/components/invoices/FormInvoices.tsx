@@ -309,7 +309,7 @@ export const FormInvoices = ({
                             open={showNewClientForm}
                             onOpenChange={setShowNewClientForm}
                         >
-                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto text-white">
+                            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto text-foreground">
                                 <DialogHeader>
                                     <DialogTitle>
                                         Créer un nouveau client
